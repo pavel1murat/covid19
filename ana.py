@@ -14,7 +14,17 @@ class HistRecord:
         self.fHist = None;
         self.fName = country+':'+key
 
-    def Draw(self,opt):
+    def Draw(self,*args, **kwargs):
+        opt = kwargs.get('opt', None)
+
+        marker = kwargs.get('marker', None)
+        col    = kwargs.get('col'   , None)
+
+        if (marker) : self.fHist.SetMarkerStyle(int(marker));
+        if (col   ) :
+            self.fHist.SetLineColor  (int(col));
+            self.fHist.SetMarkerColor(int(col));
+
         self.fHist.Draw(opt);
 
 class Ana:
@@ -62,7 +72,7 @@ class Ana:
         return var
     
 #------------------------------------------------------------------------------
-    def fill(self,country, key = 'newc', name = None):
+    def fill(self, country, key = 'newc', name = None):
 
         if (not country in self.fHist.keys()):
             self.fHist.update({country:{}})
@@ -72,12 +82,10 @@ class Ana:
         x = array('f',[])
         y = array('f',[])
 
-        for r in self.fCovid19.fData:
-            if (r['country'] == country):
-
-                var = self.variable(r,key);
-                x.append(float(r['uts']))               # time
-                y.append(float(var))
+        for r in self.fCovid19.fData[country]:
+            var = self.variable(r,key);
+            x.append(float(r['uts']))               # time
+            y.append(float(var))
 
         hr.fHist = TGraph(len(x), x, y)
 
@@ -88,9 +96,9 @@ class Ana:
         hist_name  = country+'_'+name;
         hist_title = country+':'+name;
         
-        hr.fHist.SetName (hist_name)
+        hr.fHist.SetName    (hist_name)
+        hr.fHist.SetMinimum (0.5)
         hr.fHist.SetTitle(hist_title)
         hr.fHist.GetXaxis().SetTimeDisplay(1);
         hr.fHist.SetMarkerStyle(20);
-        # hr.fGraph.Draw('ALP')
 

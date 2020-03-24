@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # coding: utf-8
 #------------------------------------------------------------------------------
+# for some reason, needs Python 3
 # effectively, this class is intended to reformat the data into a format
 # to initialize a ROOT tree
 # except sorting, I'm not using anything specific for Python, all could be done in Ruby
@@ -11,16 +12,16 @@ from operator import itemgetter
 class Covid19Data:
 #------------------------------------------------------------------------------
     def __init__(self,dir='/projects/covid19/data/world/txt'):
-        self.fData = None
+        self.fData = {}
         self.fDir  = dir
         self.read(dir)
 #------------------------------------------------------------------------------
-    def print(self,country):
+    def print(self,country = None):
         # print ROOT format string
         print('rid/I:time/I:date/C:country/C:state/C:county/C:totc/I:newc/I:totd/I:newd/I:totr/I:ac/I:serc/I:cpm/I');
 
         for data in self.fData:
-            if ( country == '') or (country == data['country']):
+            if ( not country) or (country == data['country']):
                 print("%2i %i %s %-25s %s %s %6i %6i %6i %6i %6i %6i %6i %6i"
                       %(data['rid'],data['uts'],data['ts'],
                         data['country'],data['state'], data['county'],
@@ -30,7 +31,7 @@ class Covid19Data:
 #------------------------------------------------------------------------------
     def read(self,dir):
         nlines = 0;
-        data = []
+        data   = {}
         for fn in os.listdir(dir):
             f = open(dir+'/'+fn, 'r')
             for line in f.readlines():
@@ -78,20 +79,27 @@ class Covid19Data:
 
                 if (err == 0):
                     # print(r)
-                    data.append(r);
+                    country = r['country'];
+                    if (not country in data.keys()):
+                        data.update({country:[]})
+                    data[country].append(r);
+#------------------------------------------------------------------------------
+#           ^ end of file processing
+#------------------------------------------------------------------------------
             f.close()
 #------------------------------------------------------------------------------
-# sort data in time
-#------------------------------------------------------------------------------
-            self.fData = sorted(data, key=itemgetter('uts')) 
-#------------------------------------------------------------------------------
-# ^ end of loop over the files, print totals
+#       ^ end of loop over the files, print totals
 #------------------------------------------------------------------------------
         # print('nlines = ',nlines)
+#------------------------------------------------------------------------------
+# in the end, for each country, sort data in time
+#------------------------------------------------------------------------------
+        for country in data.keys():
+            country_data = data[country]
+            self.fData.update({country:sorted(country_data,key=itemgetter('uts'))})
 #------------------------------------------------------------------------------
 # end of the class definition
 #------------------------------------------------------------------------------
 if (__name__ == '__main__'):
     data = Covid19Data();
     data.print()
-
