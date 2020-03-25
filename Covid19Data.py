@@ -25,14 +25,19 @@ class Covid19Data:
 
         for c in self.fData.keys():
             if ( not country) or (c == country):
-                for state in self.fData[country].keys():
-                    state_data = self.fData[country][state]          # this one is already an array
+                for state in self.fData[c].keys():
+                    state_data = self.fData[c][state]          # this one is already an array
                     for data in state_data:
-                        print("%2i %i %s %-25s %s %s %6i %6i %6i %6i %6i %6i %6i %6i"
+                        print("%2i %i %s %-25s %s %s %6i %6i %6i %6i %6i %6i"
                               %(data['rid'],data['uts'],data['ts'],
                                 data['country'],data['state'], data['county'],
                                 data['totc'],data['newc'],data['totd'],data['newd'],
-                                data['totr'],data['ac'],data['serc'],data['cpm']))
+                                data['totr'],data['ac']), end='')
+
+                        if ('serc' in data.keys()):
+                            print(" %6i %6i"%(data['serc'],data['cpm']), end='')
+                            
+                        print();
 
 #------------------------------------------------------------------------------
     def read(self,dir):

@@ -3,9 +3,11 @@
 #------------------------------------------------------------------------------
 # a.fHist[country][key] - histogram
 #------------------------------------------------------------------------------
-from ROOT import TCanvas, TGraphErrors, TGraph
-from ROOT import gROOT
-from array import array
+from ROOT     import TCanvas, TGraphErrors, TGraph, TH1F, TH2F
+from ROOT     import gROOT
+from array    import array
+from datetime import datetime, timezone
+from math     import *
 
 from Covid19Data import Covid19Data
 
@@ -79,10 +81,21 @@ class Ana:
 #------------------------------------------------------------------------------
     def variable(self,r,key):
         var = None;
-        if (key == 'tdrate'): var = r['totd']/r['totc'];
-        else                : var = r[key]
+        err = None;
+        
+        if (key == 'tdrate'):
+            if (r['totc'] == 0):
+                var = 0
+                err = 0
+            else:
+                var = r['totd']/r['totc'];
+                if (r['totd'] == 0): err = 0
+                else               : err = var*sqrt(1./r['totd']+1./r['totc'])
+        else                :
+            var = r[key]
+            err = sqrt(var)
 
-        return var
+        return (var,err)
     
 #------------------------------------------------------------------------------
     def hist(self,country_code,name):
@@ -98,6 +111,9 @@ class Ana:
 # 'country_code' = 'country:state:'
 #------------------------------------------------------------------------------
     def fill(self, country_code, key = 'newc', name = None):
+
+        d0 = datetime(2020,1,1,0,0,0,0)  # this is where the histogram starts
+        t0 = d0.timestamp()
 
         if (name == None) : name = key;
 
@@ -120,25 +136,35 @@ class Ana:
             ccode = country+':'+state
             hr = HistRecord(country_code,key);
         
+            hist_name  = country+'_'+state+'_'+name;
+            hist_title = country+':'+state+':'+name;
+
+            hr.fHist = TH1F(hist_name,hist_title,100,t0,t0+100*3600*24)
+            hr.fHist.GetXaxis().SetTimeDisplay(1);
+            hr.fHist.SetMarkerStyle(20);
+
             x = array('f',[])
             y = array('f',[])
 
             for r in self.fCovid19.fData[country][state]:
-                var = self.variable(r,key);
-                x.append(float(r['uts']))               # time
-                y.append(float(var))
+                (var,err) = self.variable(r,key);
+
+                d1 = datetime.fromtimestamp(r['uts'],timezone.utc)   #times are supposed to be in UTC (GMT)
+
+                nd = (d1.date()-d0.date()).days
+
+                if (self.fDebug) : print ("nd, var,err:",(nd,var,err)) 
+
+                # tt =d0.timestamp()+(nd+0.5)*3600*24
+                bin = nd+1;
+                hr.fHist.SetBinContent(bin,var)
+                hr.fHist.SetBinError  (bin,err)
+                
+#                x.append(float(r['uts']))               # time
+#                x.append(tt)                         # time
+#                y.append(float(var))
 #------------------------------------------------------------------------------
 #           ^ data arrays are filled, book histogram,
 #------------------------------------------------------------------------------
-            hr.fHist = TGraph(len(x), x, y)
 
             self.fHist[country][state].update({name:hr});
-
-            hist_name  = country+'_'+state+'_'+name;
-            hist_title = country+':'+state+':'+name;
-        
-            hr.fHist.SetName    (hist_name)
-            hr.fHist.SetMinimum (0.5)
-            hr.fHist.SetTitle(hist_title)
-            hr.fHist.GetXaxis().SetTimeDisplay(1);
-            hr.fHist.SetMarkerStyle(20);
