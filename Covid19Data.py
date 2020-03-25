@@ -11,43 +11,63 @@ from operator import itemgetter
 
 class Covid19Data:
 #------------------------------------------------------------------------------
-    def __init__(self,dir='/projects/covid19/data/world/txt'):
-        self.fData = {}
-        self.fDir  = dir
+    def __init__(self,dir='/projects/covid19/data/world/txt',debug = None):
+        self.fData  = {}
+        self.fDir   = dir
+        self.fDebug = debug
+
         self.read(dir)
+
 #------------------------------------------------------------------------------
     def print(self,country = None):
         # print ROOT format string
         print('rid/I:time/I:date/C:country/C:state/C:county/C:totc/I:newc/I:totd/I:newd/I:totr/I:ac/I:serc/I:cpm/I');
 
-        for data in self.fData:
-            if ( not country) or (country == data['country']):
-                print("%2i %i %s %-25s %s %s %6i %6i %6i %6i %6i %6i %6i %6i"
-                      %(data['rid'],data['uts'],data['ts'],
-                        data['country'],data['state'], data['county'],
-                        data['totc'],data['newc'],data['totd'],data['newd'],
-                        data['totr'],data['ac'],data['serc'],data['cpm']))
+        for c in self.fData.keys():
+            if ( not country) or (c == country):
+                for state in self.fData[country].keys():
+                    state_data = self.fData[country][state]          # this one is already an array
+                    for data in state_data:
+                        print("%2i %i %s %-25s %s %s %6i %6i %6i %6i %6i %6i %6i %6i"
+                              %(data['rid'],data['uts'],data['ts'],
+                                data['country'],data['state'], data['county'],
+                                data['totc'],data['newc'],data['totd'],data['newd'],
+                                data['totr'],data['ac'],data['serc'],data['cpm']))
 
 #------------------------------------------------------------------------------
     def read(self,dir):
+
+        if (self.fDebug) : print("<Covid19Data::read> dir = %s",dir);
+        
         nlines = 0;
-        data   = {}
+        data   = {}                  # holder of all data
         for fn in os.listdir(dir):
-            f = open(dir+'/'+fn, 'r')
-            for line in f.readlines():
+#------------------------------------------------------------------------------
+#       ^ read new file and calculate totals. All data in a single file are assumed
+#         to have the same timestamp
+#------------------------------------------------------------------------------
+            if (self.fDebug): print(fn);
+            f     = open(dir+'/'+fn, 'r')
+            lines = f.readlines()
+            nl    = len(lines);
+#------------------------------------------------------------------------------
+# first like - comma-separated keys
+#------------------------------------------------------------------------------
+            keys = lines[0].split(',')
+            for i in range(1,nl-1):
+                line   = lines[i]
                 nlines += 1;
-                # print(line.strip())
+#                print(line)
                 words = line.strip().split(',')
 
                 # print(words)
 
-                # create new dict
-                r = {}
+                r   = {}                       # 'r' - new data record
                 err = 0
-                for w in words :
-                    ww = w.split(':')
-                    key = ww[0].strip()
-                    val = ww[1].strip()
+                nw  = len(words)
+                for i in range(0,nw) :
+                    key = keys[i].strip()
+                    val = words[i].strip()
                     # print('key=',key,' val = ',val);
                     if   (key == 'rid'    ) : r[key] = int(val)
                     elif (key == 'uts'    ) : r[key] = int(val)
@@ -72,17 +92,27 @@ class Covid19Data:
                     elif (key == 'ac'     ) : r[key] = int(val)
                     elif (key == 'serc'   ) : r[key] = int(val)
                     elif (key == 'cpm'    ) : r[key] = int(val)
-                    elif (key == 'ts'     ) : r[key] = w[3:].strip()
+                    elif (key == 'ts'     ) : r[key] = val
                     else:
                         err = 1
                         print("ERROR: unknown key:",key);
 
                 if (err == 0):
-                    # print(r)
+                    if self.fDebug: print(r)
+                    
                     country = r['country'];
+                    state   = r['state'  ];
                     if (not country in data.keys()):
-                        data.update({country:[]})
-                    data[country].append(r);
+                        data.update({country:{}})
+
+                    data_country = data[country]
+                    
+                    if (not state in data_country.keys()):
+                        data_country.update({state:[]})     # this is a list of histograms
+
+                    data_state = data_country[state];
+                    
+                    data_state.append(r);
 #------------------------------------------------------------------------------
 #           ^ end of file processing
 #------------------------------------------------------------------------------
@@ -95,8 +125,12 @@ class Covid19Data:
 # in the end, for each country, sort data in time
 #------------------------------------------------------------------------------
         for country in data.keys():
-            country_data = data[country]
-            self.fData.update({country:sorted(country_data,key=itemgetter('uts'))})
+            data_country = data[country]
+            self.fData.update({country:{}})
+            for state in data_country.keys(): 
+                self.fData[country].update({state:sorted(data_country[state],key=itemgetter('uts'))})
+
+
 #------------------------------------------------------------------------------
 # end of the class definition
 #------------------------------------------------------------------------------

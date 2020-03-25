@@ -27,7 +27,7 @@ class WorldDataParser
 # for archived paged, form the file name based on the shapshot time stamp
 # https://web.archive.org/web/20200320211139/https://www.worldometers.info/coronavirus/country/us/
 #------------------------------------------------------------------------------
-  def scrape_url(url = '',sleep_time = 0)
+  def fetch_url(url = '',sleep_time = 0)
     state         = "total";
 
     if (url == '') then url=@url; end
@@ -71,7 +71,10 @@ class WorldDataParser
   end
 
 #------------------------------------------------------------------------------  
-  def parse_time_stamp(list, debug,file)
+  def parse_time_stamp(doc, debug, file)
+
+    list    = doc.xpath("//div[@class='content-inner']/div");
+
     year    = -1;
     month   = -1;
     date    = -1;
@@ -165,25 +168,30 @@ class WorldDataParser
 
     return r;
   end
+
+#------------------------------------------------------------------------------
+  def print_header(file)
+    file.printf("rid,ts,uts,country,state,county,totc,newc,totd,newd,totr,ac,serc,cpm\n");
+  end
   
 #------------------------------------------------------------------------------
 # print data record to a file
 #------------------------------------------------------------------------------
   def  print_record_to_file(r,file)
-    file.printf("rid:%1i,"      ,r['id'])
-    file.printf("ts:%-25s,"     ,r['ts'].strftime())
-    file.printf("uts:%i,"       ,r['ts'].to_time.to_i) # print UNIX time stamp, for convenience
-    file.printf("country:%-25s,",r['country'])
-    file.printf("state:%-25s,"  ,r['state'])
-    file.printf("county:%-25s," ,r['county'])
-    file.printf("totc:%7i,"     ,r['totc'])
-    file.printf("newc:%6i,"     ,r['newc'])
-    file.printf("totd:%6i,"     ,r['totd'])
-    file.printf("newd:%6i,"     ,r['newd'])
-    file.printf("totr:%7i,"     ,r['totr'])
-    file.printf("ac:%7i,"       ,r['ac'  ])
-    file.printf("serc:%7i,"     ,r['serc'])
-    file.printf("cpm:%6i\n"     ,r['cpm'])
+    file.printf("%1i,"  ,r['id'])
+    file.printf("%-25s,",r['ts'].strftime())
+    file.printf("%i,"   ,r['ts'].to_time.to_i) # print UNIX time stamp, for convenience
+    file.printf("%-25s,",r['country'])
+    file.printf("%-25s,",r['state'])
+    file.printf("%-25s,",r['county'])
+    file.printf("%7i,"  ,r['totc'])
+    file.printf("%6i,"  ,r['newc'])
+    file.printf("%6i,"  ,r['totd'])
+    file.printf("%6i,"  ,r['newd'])
+    file.printf("%7i,"  ,r['totr'])
+    file.printf("%7i,"   ,r['ac' ])
+    file.printf("%7i,"  ,r['serc'])
+    file.printf("%6i\n" ,r['cpm' ])
   end
   
 #------------------------------------------------------------------------------
@@ -198,21 +206,17 @@ class WorldDataParser
 #------------------------------------------------------------------------------
   def parse_v1(doc, of, version, debug)
 #------------------------------------------------------------------------------
-# determine the time stamp of the page update
-#------------------------------------------------------------------------------
-    list       = doc.xpath("//div[@class='content-inner']/div");
-    ts         = parse_time_stamp(list,debug,of)
-    time_stamp = ts.prev_day();
-#------------------------------------------------------------------------------
 # parse yesterday's table data
 # it looks that if I use '//td', then all rows in all tables in the list are returned
 # expect only one table
 #------------------------------------------------------------------------------
-    table = doc.xpath("//div[@class='container']/div/div/div/div/div/table[@id='main_table_countries_yesterday']");
+    time_stamp = parse_time_stamp(doc,debug,of).prev_day();
+    table      = doc.xpath("//div[@class='container']/div/div/div/div/div/table[@id='main_table_countries_yesterday']");
+
     printf("ntables: %i\n",table.length)
 
+    print_header(of)
     rows = table.xpath('tbody/tr')
-
     for row in rows
       cells         = row.xpath('td')
       r = parse_cells(cells,time_stamp,version)
@@ -231,11 +235,7 @@ class WorldDataParser
 # assume that the input file names don't have an extra '.' in them
 #------------------------------------------------------------------------------
   def parse_v2(doc, of, version, debug)
-#------------------------------------------------------------------------------
-# determine the time stamp of the page update
-#------------------------------------------------------------------------------
-    list       = doc.xpath("//div[@class='content-inner']/div");
-    time_stamp = parse_time_stamp(list,debug,of)
+    time_stamp = parse_time_stamp(doc,debug,of)
 #------------------------------------------------------------------------------
 # parse today's table data
 # it looks that if I use '//td', then all rows in all tables in the list are returned
@@ -248,6 +248,7 @@ class WorldDataParser
 
     of.printf("------------- //table TODAY\n") if (debug > 0);
     
+    print_header(of)
     rows = table.xpath('tbody/tr')
     for row in rows
       cells = row.xpath('td')
@@ -269,19 +270,16 @@ class WorldDataParser
 #------------------------------------------------------------------------------
   def parse_v3(doc, of, version, debug)
 #------------------------------------------------------------------------------
-# determine the time stamp of the page update
-#------------------------------------------------------------------------------
-    list       = doc.xpath("//div[@class='content-inner']/div");
-    time_stamp = parse_time_stamp(list,debug,of)
-#------------------------------------------------------------------------------
 # parse today's table data
 # it looks that if I use '//td', then all rows in all tables in the list are returned
 #------------------------------------------------------------------------------
+    time_stamp = parse_time_stamp(doc,debug,of)
     table      = doc.xpath("//div/table[@id='main_table_countries']");
 
     printf("ntables: %i\n",table.length)
     of.printf("------------- //table TODAY\n") if (debug > 0);
 
+    print_header(of)
     rows = table.xpath('tbody/tr')
     for row in rows
       cells = row.xpath('td')
@@ -306,8 +304,7 @@ class WorldDataParser
 #------------------------------------------------------------------------------
 # determine the time stamp of the page update
 #------------------------------------------------------------------------------
-    list       = doc.xpath("//div[@class='content-inner']/div");
-    time_stamp = parse_time_stamp(list,debug,of)
+    time_stamp = parse_time_stamp(doc,debug,of)
     
     of.puts("-------------------- //end of divisions") if (debug > 0);
 #------------------------------------------------------------------------------
@@ -319,6 +316,8 @@ class WorldDataParser
     printf("ntables: %i\n",table.length)
 
     of.printf("------------- //table TODAY\n") if (debug > 0);
+
+    print_header(of)
     rows = table.xpath('tbody/tr')
 
     rtot            = {}
@@ -373,12 +372,8 @@ class WorldDataParser
 # 'f' : output file
 #------------------------------------------------------------------------------
   def parse_v5(doc, of, version, debug)
-#------------------------------------------------------------------------------
-# determine the time stamp of the page update
-#------------------------------------------------------------------------------
-    list       = doc.xpath("//div[@class='content-inner']/div");
-    time_stamp = parse_time_stamp(list,debug,of)
-    
+    time_stamp = parse_time_stamp(doc,debug,of)
+
     of.puts("-------------------- //end of divisions") if (debug > 0);
 #------------------------------------------------------------------------------
 # parse yesterday's table data
@@ -389,6 +384,8 @@ class WorldDataParser
     printf("ntables: %i\n",table.length)
 
     f.printf("------------- //table TODAY\n") if (debug > 0);
+
+    print_header(of)
     rows = table.xpath('tbody/tr')
 
     rtot            = {}
@@ -445,7 +442,8 @@ class WorldDataParser
 
     if (ts.year == 2020) then
       if (ts.month == 3) then
-        if    (ts.day >= 18) then version = 1
+        if    (ts.day >= 24) then version = 6 # one more column (comments) added
+        elsif (ts.day >= 18) then version = 1
         elsif (ts.day >=  7) then version = 2
         else                      version = 3
         end
@@ -463,6 +461,7 @@ class WorldDataParser
     elsif (version == 3) then parse_v3(doc,of,version,debug)
     elsif (version == 4) then parse_v4(doc,of,version,debug)
     elsif (version == 5) then parse_v5(doc,of,version,debug)
+    elsif (version == 6) then parse_v1(doc,of,version,debug)
     end
 
     of.close();
