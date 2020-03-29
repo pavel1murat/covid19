@@ -7,6 +7,7 @@
 #------------------------------------------------------------------------------
 require 'watir'
 require 'nokogiri'
+require 'getoptlong'
 
 require 'local_tools.rb'
 #------------------------------------------------------------------------------
@@ -16,8 +17,31 @@ class UsaDataParser
     @url        = 'https://www.worldometers.info/coronavirus/country/us/'
     @country    = 'USA'
     @output_dir = '/projects/covid19/data/'+@country;
+    @verbose    = nil
+    @sleep_time = 0
   end
 
+#------------------------------------------------------------------------------
+  def parse_command_line() 
+
+    opts = GetoptLong.new(
+      [ "--sleep_time"    , "-s",        GetoptLong::REQUIRED_ARGUMENT ],
+      [ "--url"           , "-u",        GetoptLong::REQUIRED_ARGUMENT ],
+      [ "--verbose"       , "-v",        GetoptLong::NO_ARGUMENT       ]
+    )
+
+    opts.each do |opt, arg|
+      if    (opt == "--sleep_time")
+        @sleep_time = arg.to_i
+      elsif (opt == "--url"       )
+        @url  = arg
+      elsif (opt == "--verbose"   )
+        @verbose = 1
+      end
+      
+      if @verbose ; puts "Option: #{opt}, arg #{arg.inspect}" ; end
+    end
+  end
 #------------------------------------------------------------------------------
 # fetch web page and save it to disk
 # for archived paged, form the file name based on the shapshot time stamp
@@ -309,3 +333,14 @@ class UsaDataParser
   end
 
 end
+#------------------------------------------------------------------------------
+# one can run this script
+#------------------------------------------------------------------------------
+  if __FILE__ == $0 then
+    x = ENV["RUBYLIB"];
+    #  puts "RUBYLIB = #{x} "
+  
+    p = UsaDataParser.new();
+    p.parse_command_line();
+    p.fetch_url(@url,@sleep_time);
+  end
