@@ -1,0 +1,163 @@
+#
+* *strategy*                                                                  
+  - scrape url's to local disk, see : file:data/, parse url's starting from local files
+  - write data in a form of associative arrays, that will make it easier to analyze
+
+** world      : https://www.worldometers.info/coronavirus/
+   - urls        : file:data/world/html 
+   - parsed files: file:data/world/txt
+   #
+   - starting from Mar 17 use 'yesterday' table (it is more stable)
+
+** USA        : https://www.worldometers.info/coronavirus/country/us/   
+
+   - urls        : file:data/world/html 
+   - parsed files: file:data/world/txt
+  
+   - starting from Mar 18 use 'yesterday' table (it is more stable)
+** Canada     : https://www.canada.ca/en/public-health/services/diseases/2019-novel-coronavirus-infection.html
+
+   - urls        : file:data/canada/html 
+   - parsed files: file:data/canada/txt
+
+* data format: comma-separated associative array things                       
+
+  uts    : UNIX time stamp
+  country: 
+  state  : or province, for Canada
+  ac     : active cases - normally, ac = totc-totr-totd
+  amin   : minimal age
+  amax   : maximal age
+  id     : record ID - can imagine several formats, 
+           1: normal
+           2: not defined yet
+  lab    : state / government / private
+  newc   : today's cases
+  newd   : today's deaths
+  sex    : a  m   f
+  tests  : number of tests
+  time   : RUBY DateTime object (for convenience)
+  totc   : total number of cases up to now
+  totd   : total number of deaths reported up to now
+  totr   : total number of recovered cases
+  trans  : transmission type 
+           all       
+	   travel    travel-related
+	   p2p       person to person
+	   comm      community
+
+  *example*:
+
+rt:1, time:2020-03-20T18:58:00+00:00, uts:1584730680, country:usa, state:New_York,     county:all, totc: 8398, newc: 3031, totd:  46, newd: 12, totr:0, ac: 8352
+
+* *------------------------------------------------------------------------------*
+* setup environment and run:                                                  
+  export RUBYLIB=:/projects/covid19/scripts
+  export PATH=$PATH:/projects/products/chromedriver/bin
+
+  load 'collect_world_data.rb'
+  dp = WorldDataParser.new
+  
+* URL's:                                                                      
+
+** world: https://www.worldometers.info/coronavirus/  (use yesterday) 
+
+** USA:   https://www.worldometers.info/coronavirus/country/us/ (use yesterday)  
+
+*** AK : http://dhss.alaska.gov/dph/Epi/id/Pages/COVID-19/monitoring.aspx
+*** AL : http://www.alabamapublichealth.gov/infectiousdiseases/2019-coronavirus.html                        
+    search for "Coronavirus Disease"
+*** AR : https://www.healthy.arkansas.gov/programs-services/topics/novel-coronavirus                        
+    dashboard: https://adem.maps.arcgis.com/apps/opsdashboard/index.html#/f533ac8a8b6040e5896b05b47b17a647
+*** TODO AZ : https://www.azdhs.gov/                                                                        
+    dynamic HTMLs
+*** CA : 
+*** CO : 
+*** CT : https://portal.ct.gov/Coronavirus                                                                  
+    search for Latest COVID-19 Testing in Connecticut
+
+*** DC : https://coronavirus.dc.gov/page/coronavirus-data                                                   
+    one page with the by date statistics, add PHL+commercial, no deaths so far
+
+*** DE : 
+*** FL : https://floridahealthcovid19.gov/
+*** GA : https://dph.georgia.gov/covid-19-daily-status-report                                               
+*** HI : 
+*** IA :
+*** ID : https://coronavirus.idaho.gov/                                                                     
+    (only state summary)
+*** IL : http://www.dph.illinois.gov/topics-services/diseases-and-conditions/diseases-a-z-list/coronavirus  
+    *only state summary* 
+
+*** IN :
+*** KS :
+*** KY : 
+*** LA :
+*** MA : https://www.mass.gov/doc/covid-19-cases-in-massachusetts-as-of-march-19-2020-x-updated4pm/download 
+    local: 
+         https://www.mass.gov/doc/covid-19-cases-in-massachusetts-as-of-march-18-2020/download
+	 local: file:./
+    (this is PDF)
+*** MD : 
+*** ME : https://www.maine.gov/dhhs/mecdc/infectious-disease/epi/airborne/coronavirus.shtml                 
+*** MI : from Mar 27: https://www.michigan.gov/coronavirus/0,9753,7-406-98163_98173---,00.html  
+    data by county, sex, age
+*** MN : 
+*** MO : 
+*** MS : https://msdh.ms.gov/msdhsite/_static/14,0,420.html\#public   Mississippi
+*** MT :
+*** NC :
+*** ND :
+*** NE :
+*** NJ : https://www.nj.gov/health/cd/topics/covid2019_dashboard.shtml                          
+    
+    <2020-03-21 Sat> dasboard frame: https://maps.arcgis.com/apps/opsdashboard/index.html#/ec4bffd48f7e495182226eee7962b422
+
+*** NH : https://www.nh.gov/covid19/  (only summary plus PDF map)                               
+*** NM : 
+*** NY : *doesn't seem to be available easily*  
+*** NV :
+*** OH :                                              
+*** OK :
+*** OR :
+*** PA :
+*** RI :
+*** SC :
+*** SD :
+*** TN : 
+*** TX : https://www.dshs.state.tx.us/news/updates.shtm#coronavirus
+*** UT :
+*** VA : http://www.vdh.virginia.gov/coronavirus/
+*** VT : https://www.healthvermont.gov/response/infectious-disease/2019-novel-coronavirus       
+    search for  <h3>COVID-19 Activity in Vermont</h3>
+
+*** WA : https://www.doh.wa.gov/emergencies/coronavirus
+*** WV :
+*** WY : 
+* *------------------------------------------------------------------------------*
+* data: file:datag
+* *------------------------------------------------------------------------------*
+* *WORK LOG*                                                                  
+<2020-03-27 Fri>
+  *switch to JHU data*
+  sometimes, the csv files data have 
+
+<2020-03-25 Wed>
+  *totc fits:*
+
+      USA    : 3.2e-6 in the beginning, 3.98 after approx Mar 15 - Mar 23
+      Israel : 2.9e-6 after Mar 04
+      Russia : 2.8e-6 after Mar 11
+      Norway : 1.2e-6 after Mar 12
+      Sweden : 1.1e-6 after Mar 12
+      Denmark: 0.85e-6 after Mar 12
+
+<2020-03-23 Mon> 
+  *delete data/world/txt/2020-03-17T23:47:53+00:00_world.txt* - 
+  'todays' data there are superseded by yesterday's data from Mar 18 - first day 
+  when yesterday's data were available
+
+
+  USA: tot_deaths exponential:  (1.8 --> -3.0)e-6 change - around N(deaths)= 50
+
+  Italy: (3.46--> 1.9)e-6 change - around N(deaths) ~ 1000
