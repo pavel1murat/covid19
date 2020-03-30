@@ -278,10 +278,11 @@ class Ana:
                     hr.fHist.SetBinContent(bin,var)
                     hr.fHist.SetBinError  (bin,err)
 #------------------------------------------------------------------------------
-#           ^ histogram filled, save it
+#           ^ histogram filled, save it and return the pointer to it
 #------------------------------------------------------------------------------
                 self.fHistData.add_histogram(country,state,hr);
 
+        return hr
 #------------------------------------------------------------------------------
 # end of the class definition
 #------------------------------------------------------------------------------

@@ -1,0 +1,74 @@
+Unix.*.Root.MacroPath:.:$(MU2E_BASE_RELEASE)/murat/ana/scripts:~/root_macros:$(PWD)/Stntuple/ana:$(PWD)/Stntuple/scripts:$(ROOTSYS)/tutorials:$(HOME)/tex/cdfnotes
+
+Unix*.Root.DynamicPath:.:~/rootlibs:$(LD_LIBRARY_PATH)
+Root.Html.OutputDir:.
+Root.Html.SourceDir:.:$(ROOTSYS)/src
+#
+#  next line tells ROOT to use rootlogon.C macro from the 
+#  current directory and not any of the default ones
+#
+Rint.Logon:          $(PWD)/rootlogon.C
+Rint.Logoff:
+
+# Root.MemStat:  1
+Root.ObjectStat:  1
+#
+# Gui.IconPath:  $(PWD)/Stntuple/icons
+# Record session commands, set to "-" to turn off command recording
+Rint.History:            $(PWD)/.root_hist
+#------------------------------------------------------------------------------
+# plugin handlers
+#------------------------------------------------------------------------------
++Plugin.TFile: ^dcache: TDCacheFile DCache  "TDCacheFile(const char*,Option_t*,const char*,Int_t)"
++Plugin.TFile: ^dcap:   TDCacheFile DCache  "TDCacheFile(const char*,Option_t*,const char*,Int_t)"
+#------------------------------------------------------------------------------
+# STNTUPLE good run list (TStnRunSummaries extracted from DB, all the runs)
+#------------------------------------------------------------------------------
+# Stntuple.RunSummary:  root://fcdfdata122.fnal.gov//export/data2/ewk/run_summary/rs-138425-186598.2005-04-27.root
+# Stntuple.RunSummary   /home/murat/run_summary/rs-138425-186598.2005-04-27.root
+#------------------------------------------------------------------------------
+# STNTUPLE catalog servers (FCDFLNX2 is a fallback for FCDFLNX4, same disk,
+#                           ncdf131 is my private catalog server)
+#------------------------------------------------------------------------------
+Stntuple.Catalog   https://mu2e.fnal.gov/public/hep/computing/Stntuple/cafdfc 
+
+# Stntuple.Catalog   http://home.fnal.gov/~murat/cafdfc 
+# +Stntuple.Catalog   http://home.fnal.gov/~gianipez/cafdfc 
+# +Stntuple.Catalog   http://home.fnal.gov/~rdonghia/cafdfc 
+#------------------------------------------------------------------------------
+# name of the oracle server (used by TStnCatalogServer)
+#------------------------------------------------------------------------------
+Stntuple.OracleServer          cdfofprd
+#------------------------------------------------------------------------------
+# tarballs to use
+#------------------------------------------------------------------------------
+# tarballs to use: not used at Mu2e 
+#------------------------------------------------------------------------------
+# Stntuple.Stnfit.Tarball        /cdf/data01/tarballs/stnfit_5.3.3_dev_242_17.tgz
+# Stntuple.Stnmaker.Tarball      /cdf/data01/tarballs/stnmaker_5.3.3_dev_242_17.tgz
+# Stntuple.StnmakerProd.Tarball  /cdf/data01/tarballs/stnmaker_prod_5.3.3_dev_242_17.tgz
+#------------------------------------------------------------------------------
+# Calibration DB for TGeant: not used at Mu2e
+#------------------------------------------------------------------------------
+# TGeant.Database         $(MU2E_BASE_RELEASE)/Stntuple/db
+#------------------------------------------------------------------------------
+# Mu2E: 1. figures and histograms for TPlotNote
+#------------------------------------------------------------------------------
+mu2e.Figures                   /grid/fermiapp/mu2e/users/murat/figures/mu2e
+mu2e.HistDir                   /grid/fermiapp/mu2e/users/murat/hist/mu2e
+mu2e.TrkQual.HistDir           /grid/fermiapp/mu2e/users/murat/hist/mu2e/v5_7_0
+mu2e.TrkQual.Dsid              e11s5731
+#------------------------------------------------------------------------------
+# MU2E: 2. version of PID templates - in ConditionsService/data
+#------------------------------------------------------------------------------
+mu2e.PidVersion                v5_7_9
+mu2e.GdmlGeometry              /projects/murat/figures/mu2e/gdml/mu2e_geometry_v6_0_0.gdml
+#------------------------------------------------------------------------------
+# stnana configuration: add your analysis packages as needed
+#------------------------------------------------------------------------------
+Stnana.TestReleaseDir          $(PWD)
+Stnana.Package                 Stntuple
+# +Stnana.Package               murat
+# +Stnana.Package               zzx
+#------------------------------------------------------------------------------
+TVisManager.DebugLevel         1

@@ -59,7 +59,7 @@ rt:1, time:2020-03-20T18:58:00+00:00, uts:1584730680, country:usa, state:New_Yor
   dp = WorldDataParser.new
   
 * URL's:                                                                      
-
+** CDC  : 
 ** world: https://www.worldometers.info/coronavirus/  (use yesterday) 
 
 ** USA:   https://www.worldometers.info/coronavirus/country/us/ (use yesterday)  
@@ -67,10 +67,11 @@ rt:1, time:2020-03-20T18:58:00+00:00, uts:1584730680, country:usa, state:New_Yor
 *** AK : http://dhss.alaska.gov/dph/Epi/id/Pages/COVID-19/monitoring.aspx
 *** AL : http://www.alabamapublichealth.gov/infectiousdiseases/2019-coronavirus.html                        
     search for "Coronavirus Disease"
-*** AR : https://www.healthy.arkansas.gov/programs-services/topics/novel-coronavirus                        
-    dashboard: https://adem.maps.arcgis.com/apps/opsdashboard/index.html#/f533ac8a8b6040e5896b05b47b17a647
-*** TODO AZ : https://www.azdhs.gov/                                                                        
-    dynamic HTMLs
+    dashboard: https://alpublichealth.maps.arcgis.com/apps/opsdashboard/index.html#/6d2771faa9da4a2786a509d82c8cf0f7
+*** AR : https://adem.maps.arcgis.com/apps/opsdashboard/index.html#/f533ac8a8b6040e5896b05b47b17a647                        
+    https://www.healthy.arkansas.gov/programs-services/topics/novel-coronavirus
+*** AZ : https://www.azdhs.gov/                                                                             
+         dynamic HTMLs
 *** CA : 
 *** CO : 
 *** CT : https://portal.ct.gov/Coronavirus                                                                  
@@ -89,7 +90,7 @@ rt:1, time:2020-03-20T18:58:00+00:00, uts:1584730680, country:usa, state:New_Yor
 *** IL : http://www.dph.illinois.gov/topics-services/diseases-and-conditions/diseases-a-z-list/coronavirus  
     *only state summary* 
 
-*** IN :
+*** IN : https://coronavirus.in.gov/2393.htm
 *** KS :
 *** KY : 
 *** LA :
@@ -117,12 +118,13 @@ rt:1, time:2020-03-20T18:58:00+00:00, uts:1584730680, country:usa, state:New_Yor
 *** NM : 
 *** NY : *doesn't seem to be available easily*  
 *** NV :
-*** OH :                                              
+*** OH : https://coronavirus.ohio.gov/wps/portal/gov/covid-19/home/dashboard                                                                 
+    *no statistics on testing*
 *** OK :
-*** OR :
+*** OR : https://govstatus.egov.com/OR-OHA-COVID-19                                  
 *** PA :
 *** RI :
-*** SC :
+*** SC : https://www.scdhec.gov/infectious-diseases/viruses/coronavirus-disease-2019-covid-19/monitoring-testing-covid-19  
 *** SD :
 *** TN : 
 *** TX : https://www.dshs.state.tx.us/news/updates.shtm#coronavirus
@@ -132,12 +134,24 @@ rt:1, time:2020-03-20T18:58:00+00:00, uts:1584730680, country:usa, state:New_Yor
     search for  <h3>COVID-19 Activity in Vermont</h3>
 
 *** WA : https://www.doh.wa.gov/emergencies/coronavirus
-*** WV :
+*** WV : https://dhhr.wv.gov/COVID-19/Pages/default.aspx
 *** WY : 
 * *------------------------------------------------------------------------------*
 * data: file:datag
 * *------------------------------------------------------------------------------*
 * *WORK LOG*                                                                  
+<2020-03-30 Mon> *operational instructions*
+
+from importlib import *
+import Covid19Data
+ddir = '/projects/covid19/data/CSSEGISandData/csse_covid_19_data/csse_covid_19_daily_reports'
+data = Covid19Data.Covid19Data(ddir);
+import ana, plot_hist
+
+a = ana.Ana(); a.fData=data;
+
+plot_hist.plot_us_israel_russia(a,'totc')
+
 <2020-03-27 Fri>
   *switch to JHU data*
   sometimes, the csv files data have 
@@ -145,11 +159,11 @@ rt:1, time:2020-03-20T18:58:00+00:00, uts:1584730680, country:usa, state:New_Yor
 <2020-03-25 Wed>
   *totc fits:*
 
-      USA    : 3.2e-6 in the beginning, 3.98 after approx Mar 15 - Mar 23
-      Israel : 2.9e-6 after Mar 04
-      Russia : 2.8e-6 after Mar 11
-      Norway : 1.2e-6 after Mar 12
-      Sweden : 1.1e-6 after Mar 12
+      USA    : 3.2e-6  in the beginning, 3.98 after approx Mar 15 - Mar 23
+      Israel : 2.9e-6  after Mar 04
+      Russia : 2.8e-6  after Mar 11
+      Norway : 1.2e-6  after Mar 12
+      Sweden : 1.1e-6  after Mar 12
       Denmark: 0.85e-6 after Mar 12
 
 <2020-03-23 Mon> 

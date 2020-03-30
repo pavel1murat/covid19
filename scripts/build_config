@@ -1,0 +1,29 @@
+#!/bin/bash
+
+dir=include
+
+# echo [build_config]: pwd  `pwd`
+#------------------------------------------------------------------------------
+# Stntuple and its subpackages
+pkg=covid19
+#------------------------------------------------------------------------------
+if [ ! -d $dir/$pkg ] ; then mkdir -p $dir/$pkg ; fi
+
+# for d in alg base gui loop mod obj val ; do
+for d in sim ; do
+    if [[ -e $pkg/$d ]] && [[ ! -e $dir/$pkg/$d ]] ; then 
+	echo `pwd`$0 : creating symbolic link $dir/$pkg/$d
+	ln -s ../../$pkg/$d/$d $dir/$pkg/$d
+    fi
+done
+#------------------------------------------------------------------------------
+# SCons-related things: executed from Stntuple
+#------------------------------------------------------------------------------
+if [ ! -d ./site_scons ] ; then mkdir ./site_scons ; fi
+cp -u $pkg/scripts/site_init.py       ./site_scons/.
+cp -u $pkg/scripts/stntuple_helper.py ./site_scons/.
+#------------------------------------------------------------------------------
+# .rootrc and rootlogon.C could be modified by the user, copy them just once
+#------------------------------------------------------------------------------
+if [ ! -f ./.rootrc     ] ; then cp $pkg/scripts/.rootrc     ./. ; fi
+if [ ! -f ./rootlogon.C ] ; then cp $pkg/scripts/rootlogon.C ./. ; fi

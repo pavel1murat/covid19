@@ -229,10 +229,12 @@ class Covid19Data:
             elif (val == 'S._Korea'              ) : val = 'South_Korea'
             elif (val == 'St._Barth'             ) : val = 'St_Barth'
             elif (val == 'St._Vincent_Grenadines') : val = 'St_Vincent_Grenadines'
+            elif (val == 'Korea, South'          ) : val = 'South_Korea'
             
             r[key] = val
         elif (key == 'state'  ) :
-            if (val == '') : val = 'total'
+            if   (val == ''                      ) : val = 'total'
+            elif (val == 'United Kingdom'        ) : val = 'UK'
             r[key] = val.replace(' ','_')
         elif (key == 'county' ) : r[key] = val
         elif (key == 'fips'   ) : r[key] = int(val)
@@ -486,7 +488,7 @@ class Covid19Data:
 # end of the class definition
 #------------------------------------------------------------------------------
 if (__name__ == '__main__'):
-    # dir = '/projects/covid19/data/CSSEGISandData/csse_covid_19_data/csse_covid_19_daily_reports'
-    dir = 'test'
+    dir = '/projects/covid19/data/CSSEGISandData/csse_covid_19_data/csse_covid_19_daily_reports'
+    # dir = 'test'
     data = Covid19Data(dir);
     data.print()
