@@ -35,9 +35,6 @@ skip_list        = []
 if (os.getenv("STNTUPLE_MC_GEN") == None): 
     skip_list.append("TStnPhotosAnaModule.cc");
 
-stntuple_libs = [];
-libs          = ['libcovid19_sim'] + [ rootlibs] ;
-
-helper.build_libs(list_of_cc_files, skip_list,libs);
+helper.build_libs(list_of_cc_files, skip_list, [rootlibs]);
 
 # print "tmpdir:"+env['TMP_LIB_DIR']

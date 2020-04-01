@@ -11,14 +11,23 @@ TPerson::TPerson() {
 TPerson::~TPerson() {
 }
 
+
 //-----------------------------------------------------------------------------
-TPerson::TPerson(float Dx, float Dy, const TLocation* Location) {
-  fDx            = Dx;
-  fDy            = Dy;
-  fLocation      = Location;
-  fHealthStatus  = kHealthy;
-  fTime          = 0;
-  fInfectionTime = -1;
+TPerson::TPerson(float Dx, float Dy, TLocation* Location) {
+  fDx               = Dx;
+  fDy               = Dy;
+  fCurrentLocation  = Location;
+  fHomeLocation     = Location;
+  fWorkLocation     = nullptr;
+  fHealthStatus     = kSusceptible;
+  fTime             = 0;
+  fTimeOfInfection  = -1;
+  fInfectivePower   = 1;
+  fNInfected        = 0;
+					// start from making those constants
+  fIncubationPeriod =  5.;		// days , on average
+  fRecoveryPeriod   = 14.;	        // days , on average .. close to that
+
   fMarker.SetMarkerStyle(7);
 }
 
@@ -26,16 +35,16 @@ TPerson::TPerson(float Dx, float Dy, const TLocation* Location) {
 //-----------------------------------------------------------------------------
 void TPerson::Draw(Option_t* Opt) {
 
-  float x = fLocation->fX0+fDx;
-  float y = fLocation->fY0+fDy;
+  float x = fCurrentLocation->fX0+fDx;
+  float y = fCurrentLocation->fY0+fDy;
   
   fMarker.SetX(x);
   fMarker.SetY(y);
   
   int col(1);  // black: recovered
 
-  if      (fHealthStatus == kHealthy ) col = kBlue;
-  else if (fHealthStatus == kInfected) col = kRed;
+  if      (fHealthStatus == kSusceptible) col = kBlue;
+  else if (fHealthStatus == IsInfected()) col = kRed;
   
   fMarker.SetMarkerColor(col);
 

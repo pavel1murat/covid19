@@ -11,29 +11,67 @@ class TLocation;
 class TPerson: public TObject {
 public:
   enum {
-    kHealthy   = 0,
-    kInfected  = 1,
-    kRecovered = 2
+    kSusceptible  = 0,
+    kIncubating   = 1,
+    kSymptomatic  = 2,
+    kHospitalized = 3,
+    kSickHome     = 4,
+    kImmune       = 5,
+    kDead         = 6
+  };
+
+  enum {
+    kHome      = 0,
+    kTraveling = 1
   };
 
 public:
-  const TLocation* fLocation;  // not owned
-  float            fDx;        // distance from the Location center 
+
+  TLocation* fCurrentLocation;    // locations not owned
+  TLocation* fWorkLocation;
+  TLocation* fHomeLocation;
+
+  float            fDx;                 // distance from the Location center 
   float            fDy;
 
-  int              fHealthStatus; // healthy:infected:recovered=immuned;
+  int              fHealthStatus; // healthy:asymptomatic:symptomatic:hospitalized:recovered=immuned;
+  int              fTravelStatus;
 
   TMarker          fMarker;
 
+  float            fIncubationPeriod;     // could be a constant, during this time the person 
+                                          // is asymptomatic
+  int              fTravelPeriod;
+  int              fTimeOfTravelStart;
+
+  int              fInfectivePower;
+  float            fSymptomaticPeriod;
+  float            fRecoveryPeriod;
+
   int              fTime;
-  int              fInfectionTime;
+  int              fTimeOfInfection;       // time of infection
+  int              fOnsetTime;             // time when a person started showing the symptoms
+  int              fTimeOfHospitalization; // time when a person has been hospitalized
+  int              fTimeOfRecovery;        // time 
+  int              fTimeOfDeath;           // 
+  int              fNInfected;             // number of other people infected by this person
+
+  int              fRecoveryCode;          // 0:recovery, 1:death
 
   TPerson();
-  TPerson(float Dx, float Dy, const TLocation* Location);
+  TPerson(float Dx, float Dy, TLocation* Location);
   ~TPerson();
 
-  int  IsInfected() { return (fHealthStatus == kInfected) ; }
-  int  IsHealthy () { return (fHealthStatus == kHealthy ) ; }
+  int  IsSusceptible () { return (fHealthStatus == kSusceptible); }
+  int  IsHealthy     () { return ((fHealthStatus == kSusceptible) || (fHealthStatus == kImmune     )); }
+  int  IsInfected    () { return ((fHealthStatus == kIncubating ) || (fHealthStatus == kSymptomatic)); }
+
+  int  IncubationPeriod() { return fIncubationPeriod; }
+  int  RecoveryPeriod  () { return fRecoveryPeriod;   }
+
+  TLocation*  CurrentLocation() { return fCurrentLocation; }
+  TLocation*  HomeLocation   () { return fHomeLocation   ; }
+  TLocation*  WorkLocation   () { return fWorkLocation   ; }
 
   void Draw(Option_t* Opt = "");
 

@@ -146,10 +146,11 @@ from importlib import *
 import Covid19Data
 ddir = '/projects/covid19/data/CSSEGISandData/csse_covid_19_data/csse_covid_19_daily_reports'
 data = Covid19Data.Covid19Data(ddir);
-import ana, plot_hist
 
+import ana
 a = ana.Ana(); a.fData=data;
 
+import ana
 plot_hist.plot_us_israel_russia(a,'totc')
 
 <2020-03-27 Fri>
