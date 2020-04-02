@@ -41,8 +41,10 @@ public:
   TCovid19Sim();
   virtual ~TCovid19Sim();
 
-  void Init(int N1 = 100, int N2 = 100);
+  void Init(int N1 = 100, int NInf1 = 1, int N2 = 100, int NInf2 = 0);
   void Run(int NTimeSteps = 100);
+
+  void ModelOneStep(TPerson* P);
 
   void ModelInfectionTransfer(TPerson* P1, TPerson* P2, int Time);
   void ModelMovement         (int Time);

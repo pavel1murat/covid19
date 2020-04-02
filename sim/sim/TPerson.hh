@@ -7,35 +7,48 @@
 #include "TMarker.h"
 
 class TLocation;
+class TRandom3;
 
 class TPerson: public TObject {
 public:
+					// health status
   enum {
     kSusceptible  = 0,
     kIncubating   = 1,
     kSymptomatic  = 2,
-    kHospitalized = 3,
-    kSickHome     = 4,
     kImmune       = 5,
     kDead         = 6
   };
-
+					// travel status
   enum {
     kHome      = 0,
     kTraveling = 1
   };
+					// movement status
+  enum {
+    kFreeToMove   = 0,
+    kHospitalized = 1,
+    kQuarantined  = 2
+  };
+
 
 public:
+
+  static     float fgStep;        // step size
 
   TLocation* fCurrentLocation;    // locations not owned
   TLocation* fWorkLocation;
   TLocation* fHomeLocation;
 
+  int              fIndex;              // index at a current location
+
   float            fDx;                 // distance from the Location center 
   float            fDy;
+  float            fStep;
 
   int              fHealthStatus; // healthy:asymptomatic:symptomatic:hospitalized:recovered=immuned;
   int              fTravelStatus;
+  int              fMovementStatus;
 
   TMarker          fMarker;
 
@@ -59,12 +72,15 @@ public:
   int              fRecoveryCode;          // 0:recovery, 1:death
 
   TPerson();
-  TPerson(float Dx, float Dy, TLocation* Location);
+  TPerson(int Index, float Dx, float Dy, TLocation* Location);
   ~TPerson();
 
   int  IsSusceptible () { return (fHealthStatus == kSusceptible); }
   int  IsHealthy     () { return ((fHealthStatus == kSusceptible) || (fHealthStatus == kImmune     )); }
   int  IsInfected    () { return ((fHealthStatus == kIncubating ) || (fHealthStatus == kSymptomatic)); }
+
+  int  IsFreeToMove  () { return (fMovementStatus == kFreeToMove); }
+  int  IsRestricted  () { return (fMovementStatus != kFreeToMove); }
 
   int  IncubationPeriod() { return fIncubationPeriod; }
   int  RecoveryPeriod  () { return fRecoveryPeriod;   }
@@ -72,6 +88,9 @@ public:
   TLocation*  CurrentLocation() { return fCurrentLocation; }
   TLocation*  HomeLocation   () { return fHomeLocation   ; }
   TLocation*  WorkLocation   () { return fWorkLocation   ; }
+
+  void        TakeOneStep(TRandom3* RnGen);
+  void        ReturnHome (TRandom3* RnGen);
 
   void Draw(Option_t* Opt = "");
 

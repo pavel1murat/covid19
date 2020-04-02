@@ -10,6 +10,7 @@ class TPerson;
 
 class TLocation: public TObject  {
 public:
+  int         fIndex;
   float       fX0;
   float       fY0;
   float       fRadius;
@@ -19,7 +20,7 @@ public:
   TEllipse*    fEllipse;
 
   TLocation();
-  TLocation(float X0, float Y0, float Radius);
+  TLocation(int Index, float X0, float Y0, float Radius);
   ~TLocation();
 
   void AddPerson(TPerson* p) {
@@ -28,6 +29,8 @@ public:
   }
 
   TPerson*    Person(int I) { return (TPerson*) fListOfPeople->UncheckedAt(I); }
+
+  float R2() { return fRadius*fRadius; }
 
   void Draw(Option_t* Opt = "");
 };

@@ -103,56 +103,55 @@ def plot_us_scandinavia(ana,hist='totc',start=None,end=None):
 
 
 #------------------------------------------------------------------------------
-def plot_countries(ana,countries='US',hist='totc',start=None,end=None):
+def plot_countries(ana,list_of_countries='US',list_of_hists='totc',*args, **kwargs):
     global c,leg;
     color = [1,2,4,6,8];
 
-    list  = countries.split(',');
-    title = ''
-    if (hist == 'totc'): title = 'Total number of positive COVID-19 cases'
+    start     = kwargs.get('start'  , None)  # '2020-03-20'
+    end       = kwargs.get('end'    , None)  # '2020-03-20'
+    print_pdf = kwargs.get('print'  , None)  # 
+    logy      = kwargs.get('logy'   , 0   )  # 
 
-    c   = TCanvas("c_"+hist,"c",1200,800)
-    leg = TLegend(0.15,0.88-0.04*len(list),0.35,0.88);
+    countries  = list_of_countries.split(',');
+    hists      = list_of_hists.split(',')
+
+    title      = ''
+
+    ntot       = len(countries)*len(hists)
+    c          = TCanvas("c_"+hists[0],"c",1200,800)
+
+    leg        = TLegend(0.15,0.88-0.04*ntot,0.35,0.88);
     leg.SetLineWidth(0)
 
-    h   = None;
+    h          = None;
 
-    for i in range(0,len(list)):
-        country = list[i]
-        h = ana.fill(country,hist);
-        h.fHist.SetStats(0)
+    ihist      = 0;
 
-        if (i == 0): 
-            h.fHist.SetTitle(title)
-            h.Draw(opt='',dmin=start,dmax=end)
-        else: 
-            h.Draw(opt='sames',col= color[i])
+    for country in countries:
+        for hist in hists:
+            h       = ana.fill(country,hist);
+            if (hist == 'totc'): title = 'Total number of positive COVID-19 cases'
 
-        leg.AddEntry(h.fHist.GetName(),country, 'pe')
+            h.fHist.SetStats(0)
 
+            if (ihist == 0): 
+                h.fHist.SetTitle(title)
+                h.Draw(opt='',dmin=start,dmax=end,col=color[ihist])
+            else: 
+                h.Draw(opt='sames',col= color[ihist])
+
+            leg.AddEntry(h.fHist.GetName(),country+':'+hist, 'pe')
+            ihist = ihist+1
+
+    leg.Print()
     leg.Draw()
 
-    c.SetLogy(1);
+    if (logy == 1): c.SetLogy(1);
+    else          : c.SetLogy(0);
+
     c.Modified()
     c.Update()
 
-    fn = datetime.now().strftime("%Y-%m-%d")+'-'+hist+'-countries.pdf'
-    c.Print(fn)
-
-#------------------------------------------------------------------------------
-def plot_country_hists(ana,country='US',histograms='totc,totd',start=None,end=None):
-    global c;
-
-    c = TCanvas("c_"+country,"c",1200,800)
-    c.SetLogy(1);
-
-    list_of_hists= histograms.split(',');
-    for i in range(0,len(list_of_hists)):
-        hist = list_of_hists[i]
-        if (i == 0): ana.fill(country,hist).Draw(opt='',dmin=start,dmax=end)
-        else       : ana.fill(country,hist).Draw(opt='sames',col= i+1)
-
-    fn = datetime.now().strftime("%Y-%m-%d")+'-'+country+'-hists.pdf'
-    c.Print(fn)
-    c.Modified()
-    c.Update()
+    if (print_pdf):
+        fn = datetime.now().strftime("%Y-%m-%d")+'-'+hist+'-countries.pdf'
+        c.Print(fn)

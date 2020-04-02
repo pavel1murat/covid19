@@ -60,7 +60,18 @@ rt:1, time:2020-03-20T18:58:00+00:00, uts:1584730680, country:usa, state:New_Yor
   
 * URL's:                                                                      
 ** CDC  : 
+** COVID-19 testing      
+   https://ourworldindata.org/coronavirus-testing-source-data : old , but has links to country testing info
+   
+
 ** world: https://www.worldometers.info/coronavirus/  (use yesterday) 
+** Norway: https://www.fhi.no/en/id/infectious-diseases/coronavirus/daily-reports/daily-reports-COVID19/
+*** Wednesday 1 April 2020:         
+    total of 4665 people with confirmed COVID-19. Updated on the 31.03.2020 at 24:00.  
+    32 deaths have been notified to the NIPH (as of 01.04.2020 at 08:00). 
+    The average age is 84 years (from 62 to 95 years).  
+    A total of 94 265 have been tested for coronavirus (SARS-CoV2) (as of 31.03.2020 at 15:00). 
+    An average of 4.8 % have tested positive to date.
 
 ** USA:   https://www.worldometers.info/coronavirus/country/us/ (use yesterday)  
 
@@ -140,7 +151,21 @@ rt:1, time:2020-03-20T18:58:00+00:00, uts:1584730680, country:usa, state:New_Yor
 * data: file:datag
 * *------------------------------------------------------------------------------*
 * *WORK LOG*                                                                  
-<2020-03-30 Mon> *operational instructions*
+*** <2020-04-01 Wed> *TCovid19Sim*
+
+    need to fix a memory management error - when the 2nd person goes to travel,
+    its gets to the 3rd place in the fListOfPeople... thus nullptr's ... 
+
+*** <2020-03-31 Tue> *for the TCovid19Sim simulation*                              
+
+  c = new TCovid19Sim()
+  c->Init()
+  c->Run(101)
+
+  infected ones (red) don't move
+  blue ones get stuck to the external radius
+
+*** <2020-03-30 Mon> *plot_hist operational instructions*                          
 
 from importlib import *
 import Covid19Data
@@ -150,15 +175,13 @@ data = Covid19Data.Covid19Data(ddir);
 import ana
 a = ana.Ana(); a.fData=data;
 
-import ana
+import plot_hist
 plot_hist.plot_us_israel_russia(a,'totc')
 
-<2020-03-27 Fri>
-  *switch to JHU data*
+*** <2020-03-27 Fri>  *switch to JHU data*                                         
   sometimes, the csv files data have 
 
-<2020-03-25 Wed>
-  *totc fits:*
+*** <2020-03-25 Wed> *totc fits:*                                                  
 
       USA    : 3.2e-6  in the beginning, 3.98 after approx Mar 15 - Mar 23
       Israel : 2.9e-6  after Mar 04
@@ -167,8 +190,7 @@ plot_hist.plot_us_israel_russia(a,'totc')
       Sweden : 1.1e-6  after Mar 12
       Denmark: 0.85e-6 after Mar 12
 
-<2020-03-23 Mon> 
-  *delete data/world/txt/2020-03-17T23:47:53+00:00_world.txt* - 
+*** <2020-03-23 Mon> *delete data/world/txt/2020-03-17T23:47:53+00:00_world.txt* - 
   'todays' data there are superseded by yesterday's data from Mar 18 - first day 
   when yesterday's data were available
 
@@ -176,3 +198,4 @@ plot_hist.plot_us_israel_russia(a,'totc')
   USA: tot_deaths exponential:  (1.8 --> -3.0)e-6 change - around N(deaths)= 50
 
   Italy: (3.46--> 1.9)e-6 change - around N(deaths) ~ 1000
+* *------------------------------------------------------------------------------*
