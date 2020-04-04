@@ -6,19 +6,23 @@
 #include "TObjArray.h"
 #include "TEllipse.h"
 
+#include "covid19/sim/local_types.hh"
+
 class TPerson;
 
 class TLocation: public TObject  {
 public:
-  int         fIndex;
-  float       fX0;
-  float       fY0;
-  float       fRadius;
+  int           fIndex;
+  float         fX0;
+  float         fY0;
+  float         fRadius;
 
-  int          fNPeople;
-  TObjArray*   fListOfPeople;
-  TEllipse*    fEllipse;
+  int           fNPeople;
+  TObjArray*    fListOfPeople;
+  TEllipse*     fEllipse;
 
+  DataRecord_t* fDataRecord;
+  
   TLocation();
   TLocation(int Index, float X0, float Y0, float Radius);
   ~TLocation();
@@ -32,6 +36,7 @@ public:
 
   float R2() { return fRadius*fRadius; }
 
+  void InitDataRecord(int NDays);
   void Draw(Option_t* Opt = "");
 };
 

@@ -11,12 +11,17 @@
 #include "TRandom3.h"
 #include "TSystem.h"
 
+#include "covid19/sim/local_types.hh"
+
 #include "covid19/sim/TPerson.hh"
 #include "covid19/sim/TLocation.hh"
 
 //
 class TCovid19Sim {
 public:
+
+  DataRecord_t*  fDataRecord;
+
   TObjArray* fListOfLocations;
   TObjArray* fListOfPeople;
 
@@ -35,14 +40,16 @@ public:
   int        fHour;
   int        fDay;
   
-  int        fNHospitalized;
+  int        fNDays;
+
+  int        fNHospitalized;            // duplication, but can live with
   int        fMaxNHospitalized;		// limit on the number of hospitalized people
 
-  TCovid19Sim();
+  TCovid19Sim(int NDays = 10);
   virtual ~TCovid19Sim();
 
   void Init(int N1 = 100, int NInf1 = 1, int N2 = 100, int NInf2 = 0);
-  void Run(int NTimeSteps = 100);
+  void Run();
 
   void ModelOneStep(TPerson* P);
 
@@ -64,11 +71,9 @@ public:
 					// imagine time step = 1 hour
   float      TimeInDays(int time_step) { return time_step/24.;}
 
-					// death at a hospital probability
-  float      DeathProb      (TPerson* P) { return fDeathProb; }
-
-					// death at a home probability
-  float      DeathAtHomeProb(TPerson* P) { return fDeathAtHomeProb; }
+					// probability of death at home / in the hospital
+  float      DeathInTheHospitalProb(TPerson* P) { return fDeathProb;       }
+  float      DeathAtHomeProb       (TPerson* P) { return fDeathAtHomeProb; }
 
   ClassDef(TCovid19Sim,0)
 };

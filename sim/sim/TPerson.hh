@@ -36,9 +36,9 @@ public:
 
   static     float fgStep;        // step size
 
-  TLocation* fCurrentLocation;    // locations not owned
-  TLocation* fWorkLocation;
-  TLocation* fHomeLocation;
+  TLocation*       fCurrentLocation;    // locations not owned
+  TLocation*       fWorkLocation;
+  TLocation*       fHomeLocation;
 
   int              fIndex;              // index at a current location
 
@@ -51,6 +51,7 @@ public:
   int              fMovementStatus;
 
   TMarker          fMarker;
+  int              fColor;
 
   float            fIncubationPeriod;     // could be a constant, during this time the person 
                                           // is asymptomatic
@@ -72,12 +73,18 @@ public:
   int              fRecoveryCode;          // 0:recovery, 1:death
 
   TPerson();
-  TPerson(int Index, float Dx, float Dy, TLocation* Location);
+  TPerson(int Index, float Dx, float Dy, TLocation* Location, int Color);
   ~TPerson();
 
   int  IsSusceptible () { return (fHealthStatus == kSusceptible); }
   int  IsHealthy     () { return ((fHealthStatus == kSusceptible) || (fHealthStatus == kImmune     )); }
   int  IsInfected    () { return ((fHealthStatus == kIncubating ) || (fHealthStatus == kSymptomatic)); }
+  int  IsIncubating  () { return (fHealthStatus == kIncubating); }
+  int  IsSymptomatic () { return (fHealthStatus == kSymptomatic); }
+  int  IsHospitalized() { return (fHealthStatus == kHospitalized); }
+  int  IsQuarantined () { return (fHealthStatus == kQuarantined); }
+  int  IsImmune      () { return (fHealthStatus == kImmune); }
+  int  IsDead        () { return (fHealthStatus == kDead); }
 
   int  IsFreeToMove  () { return (fMovementStatus == kFreeToMove); }
   int  IsRestricted  () { return (fMovementStatus != kFreeToMove); }
@@ -89,8 +96,10 @@ public:
   TLocation*  HomeLocation   () { return fHomeLocation   ; }
   TLocation*  WorkLocation   () { return fWorkLocation   ; }
 
+  static void SetStep(float Step) { TPerson::fgStep = Step; }
+
   void        TakeOneStep(TRandom3* RnGen);
-  void        ReturnHome (TRandom3* RnGen);
+  void        ReturnHome (int Time, TRandom3* RnGen);
 
   void Draw(Option_t* Opt = "");
 

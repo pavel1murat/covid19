@@ -105,12 +105,14 @@ def plot_us_scandinavia(ana,hist='totc',start=None,end=None):
 #------------------------------------------------------------------------------
 def plot_countries(ana,list_of_countries='US',list_of_hists='totc',*args, **kwargs):
     global c,leg;
-    color = [1,2,4,6,8];
+    color = [1,2,4,6,8,9,44,46];
 
-    start     = kwargs.get('start'  , None)  # '2020-03-20'
-    end       = kwargs.get('end'    , None)  # '2020-03-20'
+    start     = kwargs.get('minx'   , None)  # '2020-03-20'
+    end       = kwargs.get('maxx'   , None)  # '2020-03-20'
     print_pdf = kwargs.get('print'  , None)  # 
     logy      = kwargs.get('logy'   , 0   )  # 
+    miny      = kwargs.get('miny'   , None)  # 
+    maxy      = kwargs.get('maxy'   , None)  # 
 
     countries  = list_of_countries.split(',');
     hists      = list_of_hists.split(',')
@@ -136,6 +138,8 @@ def plot_countries(ana,list_of_countries='US',list_of_hists='totc',*args, **kwar
 
             if (ihist == 0): 
                 h.fHist.SetTitle(title)
+                if (miny): h.fHist.SetMinimum(miny)
+                if (maxy): h.fHist.SetMaximum(maxy)
                 h.Draw(opt='',dmin=start,dmax=end,col=color[ihist])
             else: 
                 h.Draw(opt='sames',col= color[ihist])

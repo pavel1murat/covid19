@@ -176,7 +176,18 @@ import ana
 a = ana.Ana(); a.fData=data;
 
 import plot_hist
-plot_hist.plot_us_israel_russia(a,'totc')
+
+countries='US,Israel,Russia'
+plot_hist.plot_countries(a,countries,'totc')
+
+states='US:New_York,US:New_Jersey,US:Washington,US:Minnesota,US:Florida,US:Illinois,US:Wisconsin'
+plot_hist.plot_countries(a,states,'totc',logy=1,miny=0.5)
+
+states='US:Pennsylvania,US:Kentucky,US:North_Carolina,US:South_Carolina,US:Tennessee,US:Florida,US:Louisiana'
+plot_hist.plot_countries(a,states,'totc',logy=1,miny=0.5)
+
+states='US:Georgia,US:Virginia,US:West_Virginia,US:Texas,US:New_Mexico,US:Ohio,US:Indiana'
+plot_hist.plot_countries(a,states,'totc',logy=1,miny=0.5)
 
 *** <2020-03-27 Fri>  *switch to JHU data*                                         
   sometimes, the csv files data have 

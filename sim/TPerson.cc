@@ -15,7 +15,7 @@ TPerson::~TPerson() {
 
 
 //-----------------------------------------------------------------------------
-TPerson::TPerson(int Index, float Dx, float Dy, TLocation* Location) {
+TPerson::TPerson(int Index, float Dx, float Dy, TLocation* Location, int Color) {
   fIndex            = Index;
   fDx               = Dx;
   fDy               = Dy;
@@ -36,10 +36,13 @@ TPerson::TPerson(int Index, float Dx, float Dy, TLocation* Location) {
   fInfectivePower    = 1;
   fNInfected         = 0;
 					// start from making those constants
-  fIncubationPeriod =  5.;		// days , on average
-  fRecoveryPeriod   = 14.;	        // days , on average .. close to that
+  fIncubationPeriod  =  5.;		// should be 5 days , on average
+  fRecoveryPeriod    =  14.;            // days , on average .. close to that
 
-  fMarker.SetMarkerStyle(7);
+  fColor             = Color;
+  fMarker.SetMarkerStyle(20);
+  fMarker.SetMarkerSize (0.7);
+  fMarker.SetMarkerColor(fColor);
 }
 
 
@@ -52,36 +55,63 @@ void TPerson::Draw(Option_t* Opt) {
   fMarker.SetX(x);
   fMarker.SetY(y);
   
-  int col(1);  // black: recovered
+  int   col(1);   // black: recovered
+  float size(0.5); 
 
-  if      (fHealthStatus == kSusceptible) col = kBlue;
-  else if (fHealthStatus == IsInfected()) col = kRed;
+  if      (fHealthStatus == kSusceptible) {
+    col = fColor;
+    size = 0.5;
+  }
+  else if (fHealthStatus == kIncubating) {
+    col  = 2;
+    size = 0.5;
+  }
+  else if (fHealthStatus == kSymptomatic) {
+    col  = 2;
+    size = 0.7;
+  }
+  else if (fHealthStatus == kImmune) {
+    col  = 1;
+    size = 0.5;
+  }
+  else if (fHealthStatus == kDead) {
+    col  = 1;
+    size = 0.7;
+  }
   
-  fMarker.SetMarkerColor(col);
-
+  fMarker.SetMarkerColor(col );
+  fMarker.SetMarkerSize (size);
   fMarker.Draw();
 }
 
 
 //-----------------------------------------------------------------------------
-void TPerson::ReturnHome(TRandom3* RnGen) {
+void TPerson::ReturnHome(int Time, TRandom3* RnGen) {
 
   TLocation* oldloc  = fCurrentLocation;
   fCurrentLocation   = fHomeLocation;
 
   // 
   int index = fIndex;
+  int np    = oldloc->fListOfPeople->GetEntries();
+
   oldloc->fListOfPeople->RemoveAt(index);
 
-  TPerson* last = (TPerson*) oldloc->fListOfPeople->Last();
-  oldloc->fListOfPeople->RemoveLast();
+  if (index < np-1) {
+    TPerson* last = (TPerson*) oldloc->fListOfPeople->RemoveAt(np-1);
+    oldloc->fListOfPeople->AddAt(last,index);
+    last->fIndex = index;
+  }
 
-  oldloc->fListOfPeople->AddAt(last,index);
-  last->fIndex = index;
   oldloc->fNPeople -= 1;
+
+  TLocation* newloc = fCurrentLocation;
   
-  fCurrentLocation->fListOfPeople->Add(this);
-  fCurrentLocation->fNPeople += 1;
+  newloc->fListOfPeople->Add(this);
+  newloc->fNPeople += 1;
+  
+  int newindex = newloc->fListOfPeople->GetEntries()-1;
+  fIndex       = newindex;
 
   fTimeOfTravelStart = -1;
   fTravelStatus      = TPerson::kHome;
@@ -94,6 +124,14 @@ void TPerson::ReturnHome(TRandom3* RnGen) {
 
   fDx = r*cos(phi);
   fDy = r*sin(phi);
+
+  printf(" Time= %5i %p index %5i returned home from loc %2i to loc %2i;",
+	 Time,this,index,oldloc->fIndex,newloc->fIndex);
+
+  printf(" new_index %5i",newindex);
+  printf(" np(oldloc),np(newloc):  %5i %5i .. %5i %5i\n",
+	 oldloc->fListOfPeople->GetEntries(),oldloc->fNPeople,
+	 newloc->fListOfPeople->GetEntries(),newloc->fNPeople);
 }
 
 //-----------------------------------------------------------------------------

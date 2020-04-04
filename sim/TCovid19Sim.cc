@@ -6,9 +6,20 @@
 ClassImp(TCovid19Sim)
 
 //-----------------------------------------------------------------------------
-TCovid19Sim::TCovid19Sim() {
+TCovid19Sim::TCovid19Sim(int NDays) {
+
+  fNDays           = NDays;
+  fDrMin           = 0.01;
+  fInfectionProb   = 0.05;
+  fDeathProb       = 0.02;   // out of infected and accepted to the hospital
+  fDeathAtHomeProb = 0.06;   // out of infected and quarantined at home
+  fTravelProb      = 1.e-4;
+  fTravelPeriod    = 3. ;    // 3. // in days
+
   fListOfLocations = new TObjArray(20);
   fListOfPeople    = new TObjArray(20);
+
+  fDataRecord      = new DataRecord_t[fNDays];
 }
 
 //-----------------------------------------------------------------------------
@@ -17,15 +28,9 @@ TCovid19Sim::~TCovid19Sim() {
 
 //-----------------------------------------------------------------------------
 void TCovid19Sim::Init(int N1, int NInf1, int N2, int NInf2) {
-  fDrMin         = 0.01;
-  fInfectionProb = 0.1;
-  fDeathProb     = 0.01;  // out of infected
-  fTravelProb    = 1.e-4;
-  fTravelPeriod  = 3. ;   // in days
 
-
-  float x2(0.5), y2(0.6), r2(0.15);
-  float x1(0.3), y1(0.2), r1(0.1);
+  float x1(0.25), y1(0.25), r1(0.2);
+  float x2(0.65), y2(0.65), r2(0.3);
 //-----------------------------------------------------------------------------
 // define initial configuration - first location
 //-----------------------------------------------------------------------------
@@ -40,7 +45,7 @@ void TCovid19Sim::Init(int N1, int NInf1, int N2, int NInf2) {
     float dx    = r*cos(phi);
     float dy    = r*sin(phi);
 
-    TPerson* p = new TPerson (i,dx,dy,location);
+    TPerson* p = new TPerson (i,dx,dy,location,kBlue+2);
 
     fListOfPeople->Add(p);
     location->AddPerson(p);
@@ -67,13 +72,13 @@ void TCovid19Sim::Init(int N1, int NInf1, int N2, int NInf2) {
     float dx    = r*cos(phi);
     float dy    = r*sin(phi);
 
-    TPerson* p = new TPerson (i,dx,dy,location);
+    TPerson* p = new TPerson (i,dx,dy,location,kGreen+2);
 
     fListOfPeople->Add(p);
     location->AddPerson(p);
   }
 //-----------------------------------------------------------------------------
-// infect some 
+// infect some people
 //-----------------------------------------------------------------------------
   for (int i=0; i<NInf2; i++) {
     int ip = N2*fRn3.Rndm();
@@ -81,11 +86,17 @@ void TCovid19Sim::Init(int N1, int NInf1, int N2, int NInf2) {
     p->fHealthStatus    = TPerson::kIncubating;
     p->fTimeOfInfection = -1;
   }
-
-  fCanvas = new TCanvas("nut", "FirstSession",900,900);
+//-----------------------------------------------------------------------------
+// init data records
+//-----------------------------------------------------------------------------
+  int nl = NLocations();
+  for (int il=0; il<nl;il++) {
+    Location(il)->InitDataRecord(fNDays);
+  }
 //-----------------------------------------------------------------------------
 // draw initial configuration
 //-----------------------------------------------------------------------------
+  fCanvas = new TCanvas("nut", "FirstSession",900,900);
   Draw();
 }
 
@@ -125,57 +136,72 @@ void TCovid19Sim::UpdateHealthStatus(TPerson* P, int Time) {
 	P->fOnsetTime    = Time;
       }
     }
-    else {
+    else if (P->fHealthStatus == TPerson::kSymptomatic) {
 //-----------------------------------------------------------------------------
-// either symptomatic or hospitalized 
+// person with symptoms
 //-----------------------------------------------------------------------------
-      if (P->fHealthStatus == TPerson::kSymptomatic) {
-	if (P->IsFreeToMove()) {
-					// shows symptoms but not hospitalized/quarantined yet
-	  float dt = TimeInDays(Time-P->fOnsetTime);
-	  if (dt > P->fSymptomaticPeriod) {
+      if (P->IsFreeToMove()) {
+				// shows symptoms but not hospitalized/quarantined yet
+	float dt = TimeInDays(Time-P->fOnsetTime);
+	if (dt > P->fSymptomaticPeriod) {
 //-----------------------------------------------------------------------------
 // gets hospitalized , if there is enough beds
 //-----------------------------------------------------------------------------
-	    if (this->fNHospitalized < this->fMaxNHospitalized) {
-	      P->fHealthStatus          = TPerson::kHospitalized;
-	      P->fTimeOfHospitalization = Time;
-	      P->fMovementStatus        = TPerson::kHospitalized;
-	      
-	      this->fNHospitalized     += 1;
-	    }
-	    else {
-//-----------------------------------------------------------------------------
-// could not get hospitalized, not moving, sick at home, the clock is ticking
-//-----------------------------------------------------------------------------
-	      P->fMovementStatus      = TPerson::kQuarantined;
-	    }
+	  if (this->fNHospitalized < this->fMaxNHospitalized) {
+	    P->fHealthStatus          = TPerson::kHospitalized;
+	    P->fTimeOfHospitalization = Time;
+	    P->fMovementStatus        = TPerson::kHospitalized;
+	    
+	    this->fNHospitalized     += 1;
 	  }
 	  else {
 //-----------------------------------------------------------------------------
-// dt < hospitalization time, sick person still moving around, 
-// the person's infecting capability increases by x2 (assumption)
+// could not get hospitalized, not moving, sick at home, the clock is ticking
 //-----------------------------------------------------------------------------
-	    if (P->fInfectivePower == 1) P->fInfectivePower = 2;
-	  }
-	}
-	else if (P->fHealthStatus == TPerson::kQuarantined) {
-	  float dt = TimeInDays(Time - P->fTimeOfInfection);
-	  if (dt > P->RecoveryPeriod()) {
-	    double x = fRn3.Rndm(-1);
-	    if (x < DeathAtHomeProb(P)) {               // a small number
-	      P->fHealthStatus = TPerson::kDead;
-	      P->fTimeOfDeath  = Time;
-	    }
+	    P->fMovementStatus      = TPerson::kQuarantined;
 	  }
 	}
 	else {
 //-----------------------------------------------------------------------------
-// the person is hospitalized
+// dt < hospitalization time, sick person still moving around, 
+// the person's infecting capability increases by x2 (assumption)
 //-----------------------------------------------------------------------------
-	  float dt = TimeInDays(Time - P->fTimeOfInfection);
-	  if (dt > P->RecoveryPeriod()) {
-					// recovered
+	  if (P->fInfectivePower == 1) P->fInfectivePower = 2;
+	}
+      }
+      else if (P->fHealthStatus == TPerson::kQuarantined) {
+//-----------------------------------------------------------------------------
+// person is not free to move - quarantined at home
+//-----------------------------------------------------------------------------
+	float dt = TimeInDays(Time - P->fTimeOfInfection);
+	if (dt > P->RecoveryPeriod()) {
+	  double x = fRn3.Rndm(-1);
+	  if (x < DeathAtHomeProb(P)) {               // a small number
+	    P->fHealthStatus = TPerson::kDead;
+	    P->fTimeOfDeath  = Time;
+	  }
+	  else {
+					// person recovers
+	    P->fHealthStatus   = TPerson::kImmune;
+	    P->fTimeOfRecovery = Time;
+	    P->fMovementStatus = TPerson::kFreeToMove;
+	  }
+	}
+      }
+      else if (P->fHealthStatus == TPerson::kHospitalized) {
+//-----------------------------------------------------------------------------
+// person is hospitalized, not free to move
+//-----------------------------------------------------------------------------
+	float dt = TimeInDays(Time - P->fTimeOfInfection);
+	if (dt > P->RecoveryPeriod()) {
+
+	  double x = fRn3.Rndm(-1);
+
+	  if (x < DeathInTheHospitalProb(P)) {                       // a small number
+	    P->fHealthStatus   = TPerson::kDead;
+	    P->fTimeOfDeath    = Time;
+	  }
+	  else {                                              // recovered
 	    P->fHealthStatus   = TPerson::kImmune;
 	    P->fMovementStatus = TPerson::kFreeToMove;
 	    P->fTimeOfRecovery = Time;
@@ -226,24 +252,25 @@ void TCovid19Sim::StartTravel(TPerson* P, int Time) {
   else                newloc = Location(0);
 
   int index = P->fIndex;
-
-  printf(" Time= %5i %p index %5i went on travel from loc %2i to loc %2i\n",
-	 Time,P,P->fIndex,oldloc->fIndex,newloc->fIndex);
-
-  TPerson* last = (TPerson*) oldloc->fListOfPeople->Last();
-  oldloc->fListOfPeople->RemoveLast();
+  int np    = oldloc->fListOfPeople->GetEntries();
 
   oldloc->fListOfPeople->RemoveAt(index);
 
-  oldloc->fListOfPeople->AddAt(last,index);
-  last->fIndex = index;
+  if(index < np-1) {
+    TPerson* last = (TPerson*) oldloc->fListOfPeople->RemoveAt(np-1);
+    oldloc->fListOfPeople->AddAt(last,index);
+    last->fIndex = index;
+  }
+
   oldloc->fNPeople -= 1;
 
   newloc->fListOfPeople->Add(P);
   newloc->fNPeople += 1;
  
   P->fCurrentLocation   = newloc;
-  P->fIndex             = newloc->fListOfPeople->GetEntries();
+  
+  int newindex          = newloc->fListOfPeople->GetEntries()-1;
+  P->fIndex             = newindex;
 
   P->fTimeOfTravelStart = Time;
   P->fTravelStatus      = TPerson::kTraveling;
@@ -252,6 +279,14 @@ void TCovid19Sim::StartTravel(TPerson* P, int Time) {
 		
   P->fDx = newloc->fRadius*cos(phi);
   P->fDy = newloc->fRadius*sin(phi);
+
+  printf(" Time= %5i %p index %5i went on travel from loc %2i to loc %2i;",
+	 Time,P,index,oldloc->fIndex,newloc->fIndex);
+  printf(" new_index %5i",newindex);
+  printf(" np(oldloc),np(newloc):  %5i %5i .. %5i %5i\n",
+	 oldloc->fListOfPeople->GetEntries(),oldloc->fNPeople,
+	 newloc->fListOfPeople->GetEntries(),newloc->fNPeople);
+
 }
 
 //-----------------------------------------------------------------------------
@@ -273,31 +308,51 @@ void TCovid19Sim::ModelMovement(int Time) {
 	printf(" --- i = %5i, skip nullptr\n",i);
 	continue;
       }
+
       if ( ! p->IsFreeToMove()) continue;
 
-      if (! p->IsHealthy()) { 
+      if (p->IsIncubating()) { 
 //-----------------------------------------------------------------------------
-// infected person free to move, assume infected people do not travel
+// incubating person is free to move, assume infected people do not travel
 // will need to revisit this assumption
 //-----------------------------------------------------------------------------
-	if (p->fTravelStatus == TPerson::kTraveling) {
-					// infected person on travel
-	  p->ReturnHome(&fRn3);
+	if (p->fTravelStatus == TPerson::kHome) {
+	  double x  = fRn3.Rndm(i);
+	  if (x < fTravelProb)      StartTravel(p,Time);
+	  else                      p->TakeOneStep(&fRn3);
 	}
-	else {                          //  infected but not yet movement-restricted person at home location
-	  p->TakeOneStep(&fRn3);
+	else {
+//-----------------------------------------------------------------------------
+// incubating person on travel
+//-----------------------------------------------------------------------------
+	  float dt = TimeInDays(Time-p->fTimeOfTravelStart);
+
+	  if (dt > fTravelPeriod) p->ReturnHome(Time,&fRn3);
+	  else                    p->TakeOneStep(&fRn3);
 	}
       }
+      else if (p->IsSymptomatic()) {
+//-----------------------------------------------------------------------------
+// person with symptoms: do not start new travel, but do not immediately returneither
+//-----------------------------------------------------------------------------
+	if (p->fTravelStatus == TPerson::kHome) p->TakeOneStep(&fRn3);
+	else {
+	  float dt = TimeInDays(Time-p->fTimeOfTravelStart);
+	  if (dt > fTravelPeriod) p->ReturnHome(Time,&fRn3);
+	  else                    p->TakeOneStep(&fRn3);
+	}
+      }
+//-----------------------------------------------------------------------------
+// don't need to consider hospitalized case - not moving
+//-----------------------------------------------------------------------------
       else {
 //-----------------------------------------------------------------------------
 // person is healthy
 //-----------------------------------------------------------------------------
 	if (p->fTravelStatus == TPerson::kHome) {
 	  double x  = fRn3.Rndm(i);
-	  if (x < fTravelProb) {
-	    StartTravel(p,Time);
-	  }
-	  else                 p->TakeOneStep(&fRn3);
+	  if (x < fTravelProb)    StartTravel(p,Time);
+	  else                    p->TakeOneStep(&fRn3);
 	}
 	else {
 //-----------------------------------------------------------------------------
@@ -305,12 +360,8 @@ void TCovid19Sim::ModelMovement(int Time) {
 //-----------------------------------------------------------------------------
 	  float dt = TimeInDays(Time-p->fTimeOfTravelStart);
 
-	  if (dt > fTravelPeriod) {
-	    p->ReturnHome(&fRn3);
-	  }
-	  else {
-	    p->TakeOneStep(&fRn3);
-	  }
+	  if (dt > fTravelPeriod) p->ReturnHome(Time,&fRn3);
+	  else                    p->TakeOneStep(&fRn3);
 	}
       }
     }
@@ -318,49 +369,104 @@ void TCovid19Sim::ModelMovement(int Time) {
 }
 
 //-----------------------------------------------------------------------------
-void TCovid19Sim::Run(int NTimeSteps) {
+void TCovid19Sim::Run() {
 //-----------------------------------------------------------------------------
 // time_step - by one hour
 //-----------------------------------------------------------------------------
-  for (int time_step=0; time_step<NTimeSteps; time_step++) {
-    fTimeStep = time_step;
-    fHour     = time_step % 24;
-    fDay      = time_step / 24;
+  int   time_step;
+
+  for (int day=0; day<fNDays; day++) {
+    for (int hour=0; hour<24; hour++) {
+      time_step = 24*day+hour;
+      fTimeStep = time_step;
+      fHour     = time_step % 24;
+      fDay      = time_step / 24;
 //-----------------------------------------------------------------------------
 // 1. evolve the system : propagate infection at at his location
 //-----------------------------------------------------------------------------
-    int nl = NLocations();
-    for (int iloc=0; iloc<nl; iloc++) {
-      TLocation* loc = Location(iloc);
-      int np = loc->fNPeople;
+      int nl = NLocations();
+      for (int iloc=0; iloc<nl; iloc++) {
+	TLocation* loc = Location(iloc);
+	int np = loc->fNPeople;
 //-----------------------------------------------------------------------------
 // step 1: evolve individual health status
 //-----------------------------------------------------------------------------
-      for (int i=0; i<np; i++) {
-	TPerson* p = (TPerson*) loc->Person(i); 
-	UpdateHealthStatus(p,time_step);
-      }
+	for (int i=0; i<np; i++) {
+	  TPerson* p = (TPerson*) loc->Person(i);
+	  UpdateHealthStatus(p,time_step);
+	}
 //-----------------------------------------------------------------------------
 // step 2: model infection transfer between the two people currently at that location
 //-----------------------------------------------------------------------------
-      for (int i1=0; i1<np; i1++) {
-	TPerson* p1 = (TPerson*) loc->Person(i1); 
-	for (int i2=i1+1; i2<np; i2++) {
-	  TPerson* p2 = (TPerson*) loc->Person(i2); 
-	  if      (p1->IsInfected() && p2->IsSusceptible()) ModelInfectionTransfer(p1,p2,time_step);
-	  else if (p2->IsInfected() && p1->IsSusceptible()) ModelInfectionTransfer(p2,p1,time_step);
+	for (int i1=0; i1<np; i1++) {
+	  TPerson* p1 = (TPerson*) loc->Person(i1); 
+	  for (int i2=i1+1; i2<np; i2++) {
+	    TPerson* p2 = (TPerson*) loc->Person(i2); 
+	    if      (p1->IsInfected() && p2->IsSusceptible()) ModelInfectionTransfer(p1,p2,time_step);
+	    else if (p2->IsInfected() && p1->IsSusceptible()) ModelInfectionTransfer(p2,p1,time_step);
+	  }
 	}
       }
-    }
 //-----------------------------------------------------------------------------
 // step 3: let people move , at this point they can move between the locations as well
 //-----------------------------------------------------------------------------
-    printf(" before ModelMovement, step = %5i\n",time_step);
-    ModelMovement(time_step);
+      printf(" before ModelMovement, step = %5i\n",time_step);
+      ModelMovement(time_step);
 //-----------------------------------------------------------------------------
 // step 4: visualize end of the step
 //-----------------------------------------------------------------------------
-    Draw();
-    gSystem->Sleep(200);
+      Draw();
+      gSystem->Sleep(100);
+    }
+//-----------------------------------------------------------------------------
+// in the end of the day, update status and recalculate all important parameters
+//-----------------------------------------------------------------------------
+    DataRecord_t* dr    = fDataRecord+day;
+    dr->fNSusceptible   = 0;
+    dr->fNIncubating    = 0;
+    dr->fNSymptomatic   = 0;
+    dr->fNHospitalized  = 0;
+    dr->fNQuarantined   = 0;
+    dr->fNDead          = 0;
+    dr->fNImmune        = 0;
+
+    int nloc = NLocations();
+    for (int iloc=0; iloc<nloc; iloc++) {
+      TLocation* loc = Location(iloc);
+      DataRecord_t* ldr = loc->fDataRecord+day;
+      ldr->fNSusceptible   = 0;
+      ldr->fNIncubating    = 0;
+      ldr->fNSymptomatic   = 0;
+      ldr->fNHospitalized  = 0;
+      ldr->fNQuarantined   = 0;
+      ldr->fNDead          = 0;
+      ldr->fNImmune        = 0;
+
+      int np = loc->fNPeople;
+//-----------------------------------------------------------------------------
+// 
+//-----------------------------------------------------------------------------
+      for (int i=0; i<np; i++) {
+	TPerson* p = (TPerson*) loc->Person(i);
+	if (p->IsSusceptible ()) ldr->fNSusceptible  += 1;
+	if (p->IsIncubating  ()) ldr->fNIncubating   += 1;
+	if (p->IsSymptomatic ()) ldr->fNSymptomatic  += 1;
+	if (p->IsHospitalized()) ldr->fNHospitalized += 1;
+	if (p->IsQuarantined ()) ldr->fNQuarantined  += 1;
+	if (p->IsDead        ()) ldr->fNDead         += 1;
+	if (p->IsImmune      ()) ldr->fNImmune       += 1;
+      }
+
+      dr->fNSusceptible   += ldr->fNSusceptible;
+      dr->fNIncubating    += ldr->fNIncubating;
+      dr->fNSymptomatic   += ldr->fNSymptomatic;
+      dr->fNHospitalized  += ldr->fNHospitalized;
+      dr->fNQuarantined   += ldr->fNQuarantined;
+      dr->fNDead          += ldr->fNDead;
+      dr->fNImmune        += ldr->fNImmune;
+    }
   }
+//-----------------------------------------------------------------------------
+// this is the end, all data are collected, ready for histogramming
+//-----------------------------------------------------------------------------
 }
