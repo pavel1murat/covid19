@@ -8,10 +8,12 @@ struct DataRecord_t {
   int          fNSusceptible;
   int          fNIncubating;
   int          fNSymptomatic;
-  int          fNHospitalized;
-  int          fNQuarantined;
   int          fNDead;
   int          fNImmune;
+
+  int          fNFreeToMove;
+  int          fNHospitalized;
+  int          fNQuarantined;
 };
 
 #endif

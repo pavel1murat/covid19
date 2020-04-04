@@ -12,12 +12,12 @@ class TRandom3;
 class TPerson: public TObject {
 public:
 					// health status
-  enum {
+  enum HealthStatus_t {
     kSusceptible  = 0,
     kIncubating   = 1,
     kSymptomatic  = 2,
-    kImmune       = 5,
-    kDead         = 6
+    kImmune       = 3,
+    kDead         = 4
   };
 					// travel status
   enum {
@@ -25,7 +25,7 @@ public:
     kTraveling = 1
   };
 					// movement status
-  enum {
+  enum LocationStatus_t {
     kFreeToMove   = 0,
     kHospitalized = 1,
     kQuarantined  = 2
@@ -46,7 +46,7 @@ public:
   float            fDy;
   float            fStep;
 
-  int              fHealthStatus; // healthy:asymptomatic:symptomatic:hospitalized:recovered=immuned;
+  HealthStatus_t   fHealthStatus; // healthy:asymptomatic:symptomatic:hospitalized:recovered=immuned;
   int              fTravelStatus;
   int              fMovementStatus;
 
@@ -77,16 +77,18 @@ public:
   ~TPerson();
 
   int  IsSusceptible () { return (fHealthStatus == kSusceptible); }
-  int  IsHealthy     () { return ((fHealthStatus == kSusceptible) || (fHealthStatus == kImmune     )); }
-  int  IsInfected    () { return ((fHealthStatus == kIncubating ) || (fHealthStatus == kSymptomatic)); }
   int  IsIncubating  () { return (fHealthStatus == kIncubating); }
   int  IsSymptomatic () { return (fHealthStatus == kSymptomatic); }
-  int  IsHospitalized() { return (fHealthStatus == kHospitalized); }
-  int  IsQuarantined () { return (fHealthStatus == kQuarantined); }
   int  IsImmune      () { return (fHealthStatus == kImmune); }
   int  IsDead        () { return (fHealthStatus == kDead); }
 
-  int  IsFreeToMove  () { return (fMovementStatus == kFreeToMove); }
+  int  IsHealthy     () { return ((fHealthStatus == kSusceptible) || (fHealthStatus == kImmune     )); }
+  int  IsInfected    () { return ((fHealthStatus == kIncubating ) || (fHealthStatus == kSymptomatic)); }
+
+  int  IsFreeToMove  () { return (fMovementStatus == kFreeToMove);   }
+  int  IsHospitalized() { return (fMovementStatus == kHospitalized); }
+  int  IsQuarantined () { return (fMovementStatus == kQuarantined);  }
+
   int  IsRestricted  () { return (fMovementStatus != kFreeToMove); }
 
   int  IncubationPeriod() { return fIncubationPeriod; }

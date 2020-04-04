@@ -25,11 +25,13 @@ public:
   TObjArray* fListOfLocations;
   TObjArray* fListOfPeople;
 
-  TCanvas*   fCanvas;
   TRandom3   fRn3;
 
   float      fDrMin;
+
   float      fInfectionProb;
+  float      fHospitalizationProb;
+
   float      fTravelProb;
   int        fTravelPeriod;
   float      fDeathProb;
@@ -42,11 +44,19 @@ public:
   
   int        fNDays;
 
+  int        fSleepTime;
+
   int        fNHospitalized;            // duplication, but can live with
   int        fMaxNHospitalized;		// limit on the number of hospitalized people
 
+  TCanvas*   fCanvas;
+//-----------------------------------------------------------------------------
+// functions
+//-----------------------------------------------------------------------------
   TCovid19Sim(int NDays = 10);
   virtual ~TCovid19Sim();
+
+  void  SetSleepTime(int MSec) { fSleepTime = MSec; }
 
   void Init(int N1 = 100, int NInf1 = 1, int N2 = 100, int NInf2 = 0);
   void Run();

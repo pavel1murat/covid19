@@ -1,0 +1,182 @@
+% -*- mode:flyspell; mode:latex -*-
+% \documentclass[a4paper,twoside,11pt]{book}
+\documentclass[12pt]{article}
+\usepackage[latin1]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+\usepackage{graphicx}
+\usepackage{float}
+
+
+\usepackage{tikz}
+\usepackage{[caption}
+\usetikzlibrary{arrows}
+\usetikzlibrary{decorations.markings}
+\usetikzlibrary{decorations.pathmorphing}
+% \usepackage[absolute,overlay]{textpos}
+% \usepackage{onimage}
+
+\usepackage{times}
+\usepackage{graphics}
+
+% \usepackage{subfigure}
+% \usepackage{scalefnt}
+% 
+% \renewcommand\thesubfigure{\arabic{subfigure}}
+
+\usepackage{amsmath}
+\usepackage{hyperref}
+\usepackage{hhline}
+\usepackage{subfig}
+\usepackage{color}
+\usepackage[all]{hypcap}
+
+% \usepackage[normalem]{ulem}  % for striking out
+% \usepackage{fancyhdr}
+% \pagestyle{fancy}
+% \fancyhead[C]{}
+% \fancyhead[L] {\it{Mu2e-doc-29670-v1.0} }
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% use natbib - biblatex not available on Mu2e interactive nodes
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage[square,sort,comma,numbers]{natbib}
+
+% location of the .bib files: env var BIBINPUTS (~/library/bibliography)
+
+% \usepackage[backend=biber, style=numeric-comp, sorting=ynt] {biblatex}
+% \addbibresource{clfv.bib}
+
+% \addbibresource{stntuple.bib}
+% \addbibresource{mu2e_web.bib}
+% \addbibresource{radiative_pion_capture.bib}
+
+\graphicspath{{figures/}}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% for portability, make sure all commands are included locally
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\include{commands}
+\newcommand {\ra}        {\rightarrow}
+\newcommand {\mumemconv}[1][A] {\mbox{$\mu^- \textrm{#1} \rightarrow e^- \textrm{#1}$}}
+% Define a relay to have 2 default arguments instead of limit of 1
+\newcommand {\mumepconv}[1][A] {%
+  \def\ArgI{{#1}}%store the first argument
+  \mumepconvRelay
+}
+\newcommand \mumepconvRelay[1][A]  {\mbox{$\mu^- \textrm{\ArgI} \rightarrow e^+ \textrm{#1}$}}
+
+\newcommand {\Pb}[1]     {\mbox{$\rm ^{#1}Pb$}}                 % isotopes of lead
+\newcommand {\Au}[1]     {\mbox{$\rm ^{#1}Au$}}                 % isotopes of gold
+\newcommand {\Ir}[1]     {\mbox{$\rm ^{#1}Ir$}}                 % isotopes of iridium
+\newcommand {\kmax}      {\mbox{$k_{\rm max}$}}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+
+\begin{titlepage}
+  \begin{flushright}
+    \bf {MU2E/PHYSICS/31019} \\
+    version 1.0
+    \today
+ \end{flushright}
+
+  \vspace{1cm}
+  
+  \begin{center}
+    {\Large \bf Modeling of the COVID19 pandemic development in time} 
+    
+    \vspace{1cm}
+    
+    P. Murat(FNAL)
+    
+    % \footnote{\texttt{Fermilab; e-mail: murat@fnal.gov}}
+    \vspace{0.3cm}
+    
+    \vspace{0.8cm}                           
+  \end{center}
+
+  \begin{abstract}
+    we model time development
+  \end{abstract}
+
+\end{titlepage}
+% \frontmatter
+% \chapter*{Abstract}
+%
+% \addcontentsline{toc}{chapter}{Abstract}
+%
+% \mainmatter
+%
+{\tableofcontents}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\chapter{Calibration}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \input{input_data}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newpage
+\section { Introduction}
+
+Introduction
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+\newpage
+\section { Description of the model}
+
+THe model simulates development of pandemic in time. 
+
+Several regions with different population density. 
+
+Individuals may travel between, transferring infection,
+
+A health of an individual could be in one of 5 states: 
+susceptible, incubating, symptomatic, immune, dead.
+
+An individual can be moving or constrained (hospitalized or quarantined)
+
+Model of infection transfer: 
+
+if the 2D distance between an infected and a susceptible individuals 
+becomes lower than Dmin, a susceptible individual becomes infected with the 
+probability of $p_{infection}$.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+\bibliographystyle{unsrtnat}
+\bibliography{covid19}
+%% \printbibliography
+\end{document}
+
+
+% ------------------------------------------------------------------------------
+% templates
+% ------------------------------------------------------------------------------
+% Table ~\ref{table:summary} gives summary the numbers used in this study.
+% 
+% \hspace{-0.1in}
+% \begin{table}[htbp]
+%   \label{table:summary}
+%   \begin{center} 
+%     {\renewcommand{\arraystretch}{1.0}   % change 1.0 to 1.1 to increase the spacing between the table lines
+%       \begin{tabular}{|c|c|c|c|}
+%         \hline
+%                             & default TS geometry & misaligned TS geometry   &  Ratio(default/misaligned)    \\ 
+%         \hline
+%         $N_{POT}$            &  $4.96 \cdot 10^6$  &    $5.00 \cdot 10^6$      &   0.992   \\ 
+%         $N_{\mu}^{TS3u}$      &  65648              &     61354                 &   1.070   \\ 
+%         $N_{\mu}^{TS5}$       &  28517              &     27351                 &   1.043   \\ 
+%         $N_{\mu}^{ST}$        &  8868               &      8396                 &   1.056   \\ 
+%         $N_{\mu}^{ST}/N_{POT}$ &  $1.79 \pm 0.02$    &    $1.68 \pm 0.02$        &   $1.065 \pm 0.03$        \\ 
+%         \hline
+%       \end{tabular}
+%     }
+%   \end{center}
+%   \caption{
+%     Muons rates at different points of the Mu2e beamline and stopping muon rates for nominal and 
+%     misaligned TS geometries
+%   }
+%   % \vspace{0.5in}
+% \end{table}
