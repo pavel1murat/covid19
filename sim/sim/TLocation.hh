@@ -9,6 +9,7 @@
 #include "covid19/sim/local_types.hh"
 
 class TPerson;
+class TRandom3;
 
 class TLocation: public TObject  {
 public:
@@ -17,7 +18,6 @@ public:
   float         fY0;
   float         fRadius;
 
-  int           fNPeople;
   TObjArray*    fListOfPeople;
   TEllipse*     fEllipse;
 
@@ -27,10 +27,11 @@ public:
   TLocation(int Index, float X0, float Y0, float Radius);
   ~TLocation();
 
-  void AddPerson(TPerson* p) {
-    fListOfPeople->Add((TObject*) p);
-    fNPeople++;
-  }
+  void Init(int NTotal, int NInfected, int Color, int NDays, TRandom3* RnGen);
+
+  void AddPerson(TPerson* p) { fListOfPeople->Add((TObject*) p); }
+
+  int  NPeople() { return fListOfPeople->GetEntries(); }
 
   TPerson*    Person(int I) { return (TPerson*) fListOfPeople->UncheckedAt(I); }
 

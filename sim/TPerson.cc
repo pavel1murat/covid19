@@ -103,12 +103,9 @@ void TPerson::ReturnHome(int Time, TRandom3* RnGen) {
     last->fIndex = index;
   }
 
-  oldloc->fNPeople -= 1;
-
   TLocation* newloc = fCurrentLocation;
   
   newloc->fListOfPeople->Add(this);
-  newloc->fNPeople += 1;
   
   int newindex = newloc->fListOfPeople->GetEntries()-1;
   fIndex       = newindex;
@@ -129,9 +126,9 @@ void TPerson::ReturnHome(int Time, TRandom3* RnGen) {
    	 Time,this,index,oldloc->fIndex,newloc->fIndex);
 
   printf(" new_index %5i",newindex);
-  printf(" np(oldloc),np(newloc):  %5i %5i .. %5i %5i\n",
-   	 oldloc->fListOfPeople->GetEntries(),oldloc->fNPeople,
-   	 newloc->fListOfPeople->GetEntries(),newloc->fNPeople);
+  printf(" np(oldloc),np(newloc):  %5i .. %5i\n",
+   	 oldloc->fListOfPeople->GetEntries(),
+   	 newloc->fListOfPeople->GetEntries());
 }
 
 //-----------------------------------------------------------------------------

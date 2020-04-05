@@ -1,14 +1,18 @@
 //
 
+#include "TH1F.h"
+
 #include "covid19/sim/TCovid19Sim.hh"
 #include "covid19/sim/TLocation.hh"
+#include "covid19/sim/TPerson.hh"
 
 //-----------------------------------------------------------------------------
 class TCovid19Ana {
 
   enum {
     kNValHistSets    = 1000,
-    kNHealthHistSets = 1000
+    kNHealthHistSets = 1000,
+    kNPersonHistSets = 1000
   };
 
 public: 
@@ -27,11 +31,17 @@ public:
     TH1F* fHealthy;        // incubating+immmune
 
     TH1F* fHosp;           // hospitalized
+    TH1F* fTdrate;         // hospitalized
+  };
+
+  struct PersonHist_t {
+    TH1F* fNInfected;      // N(infected) by this person
   };
 
   struct Hist_t {
     ValHist_t*     fVal   [kNValHistSets   ];
     HealthHist_t*  fHealth[kNHealthHistSets];
+    PersonHist_t*  fPerson[kNPersonHistSets];
   } fHist;
   
   TCovid19Sim*  fSim;
@@ -41,11 +51,13 @@ public:
 
   void BookValHistograms   (ValHist_t*    Hist, int Loc);
   void BookHealthHistograms(HealthHist_t* Hist, int Loc);
+  void BookPersonHistograms(PersonHist_t* Hist, int Loc);
 
   void BookHistograms();
 
   void FillValHistograms   (ValHist_t*    Hist, TLocation* Loc);
   void FillHealthHistograms(HealthHist_t* Hist, TLocation* Loc);
+  void FillPersonHistograms(PersonHist_t* Hist, int Loc);
   void FillHistograms();
 };
 
@@ -78,8 +90,14 @@ void TCovid19Ana::BookHealthHistograms(HealthHist_t* Hist, int Set) {
   Hist->fImmune     = new TH1F(Form("immune_%i"  ,Set),Form("immune %i"  ,Set),ndays,0,ndays);
   Hist->fDead       = new TH1F(Form("dead_%i"    ,Set),Form("dead %i"    ,Set),ndays,0,ndays);
   Hist->fHealthy    = new TH1F(Form("healthy_%i" ,Set),Form("healthy %i" ,Set),ndays,0,ndays);
+  Hist->fTdrate     = new TH1F(Form("tdrate_%i"  ,Set),Form("tdrate %i"  ,Set),ndays,0,ndays);
 
   Hist->fHosp       = new TH1F(Form("hosp_%i"    ,Set),Form("hosp %i"    ,Set),ndays,0,ndays);
+}
+
+//-----------------------------------------------------------------------------
+void TCovid19Ana::BookPersonHistograms(PersonHist_t* Hist, int Set) {
+  Hist->fNInfected  = new TH1F(Form("ninf_%i"   ,Set),Form("n(infected) %i"   ,Set),100,0,100);
 }
 
 //-----------------------------------------------------------------------------
@@ -110,6 +128,19 @@ void TCovid19Ana::BookHistograms() {
     if (book_health_hist_set[i] != 0) {
       fHist.fHealth[i] = new HealthHist_t();
       BookHealthHistograms(fHist.fHealth[i],  i);
+    }
+  }
+
+  int book_person_hist_set[kNPersonHistSets];
+  for (int i = 0; i<kNPersonHistSets; i++) book_person_hist_set[i] = 0;
+
+  book_person_hist_set[  0] = 1;
+  book_person_hist_set[  1] = 1;
+
+  for (int i=0; i<kNPersonHistSets; i++) {
+    if (book_person_hist_set[i] != 0) {
+      fHist.fPerson[i] = new PersonHist_t();
+      BookPersonHistograms(fHist.fPerson[i],  i);
     }
   }
 }
@@ -180,9 +211,9 @@ void TCovid19Ana::FillHealthHistograms(HealthHist_t* Hist, TLocation* Loc) {
     Hist->fInfected->SetBinContent(bin,y);
     Hist->fInfected->SetBinError  (bin,sqrt(y));
 
-    y     = r->fNSymptomatic+r->fNImmune+r->fNDead;
-    Hist->fPositive->SetBinContent(bin,y);
-    Hist->fPositive->SetBinError  (bin,sqrt(y));
+    float qn_positive = r->fNSymptomatic+r->fNImmune+r->fNDead;
+    Hist->fPositive->SetBinContent(bin,qn_positive);
+    Hist->fPositive->SetBinError  (bin,sqrt(qn_positive));
 
     y     = r->fNImmune;
     Hist->fImmune->SetBinContent(bin,y);
@@ -199,6 +230,35 @@ void TCovid19Ana::FillHealthHistograms(HealthHist_t* Hist, TLocation* Loc) {
     y     = r->fNHospitalized;
     Hist->fHosp->SetBinContent(bin,y);
     Hist->fHosp->SetBinError  (bin,sqrt(y));
+
+
+    float tdrate(0), err(0);
+
+    if (qn_positive > 0) {
+      tdrate = r->fNDead/qn_positive;
+      err    = sqrt(r->fNDead)/qn_positive;
+    }
+ 
+    Hist->fTdrate->SetBinContent(bin,tdrate);
+    Hist->fTdrate->SetBinError  (bin,err);
+  }
+}
+
+//-----------------------------------------------------------------------------
+// 'Loc' < 0 : all
+//-----------------------------------------------------------------------------
+void TCovid19Ana::FillPersonHistograms(PersonHist_t* Hist, int Loc) {
+
+  Hist->fNInfected->Reset();    
+		  
+  TLocation* loc = fSim->Location(Loc);
+
+  int np = loc->NPeople();
+
+  for (int ip=0; ip<np; ip++) {
+    TPerson* p = loc->Person(ip);
+
+    Hist->fNInfected->Fill(p->fNInfected);
   }
 }
 
@@ -213,5 +273,6 @@ void TCovid19Ana::FillHistograms() {
   FillHealthHistograms(fHist.fHealth[  1],fSim->Location(1));
   FillHealthHistograms(fHist.fHealth[100],nullptr    );
 
+  FillPersonHistograms(fHist.fPerson[  0],0);
+  FillPersonHistograms(fHist.fPerson[  1],1);
 }
-

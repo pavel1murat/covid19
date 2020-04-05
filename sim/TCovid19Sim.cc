@@ -20,90 +20,17 @@ TCovid19Sim::TCovid19Sim(int NDays) {
   fTravelPeriod        = 3. ;    // 3. // in days
 
   fListOfLocations = new TObjArray(20);
-  fListOfPeople    = new TObjArray(20);
 
   fDataRecord      = new DataRecord_t[fNDays];
 
 
   fSleepTime       = 200;
+
+  fCanvas          = new TCanvas("nut", "FirstSession",900,900);
 }
 
 //-----------------------------------------------------------------------------
 TCovid19Sim::~TCovid19Sim() {
-}
-
-//-----------------------------------------------------------------------------
-void TCovid19Sim::Init(int N1, int NInf1, int N2, int NInf2) {
-
-  float x1(0.25), y1(0.25), r1(0.2);
-  float x2(0.65), y2(0.65), r2(0.3);
-//-----------------------------------------------------------------------------
-// define initial configuration - first location
-//-----------------------------------------------------------------------------
-  TLocation* location = new TLocation(0,x1,y1,r1);
-
-  fListOfLocations->Add(location);
-
-  for (int i=0; i<N1; i++) {
-    double phi = fRn3.Rndm(i)*2*M_PI;
-    double r   = fRn3.Rndm(i)*r1;
-
-    float dx    = r*cos(phi);
-    float dy    = r*sin(phi);
-
-    TPerson* p = new TPerson (i,dx,dy,location,kBlue+2);
-
-    fListOfPeople->Add(p);
-    location->AddPerson(p);
-  }
-//-----------------------------------------------------------------------------
-// infect some 
-//-----------------------------------------------------------------------------
-  for (int i=0; i<NInf1; i++) {
-    int ip = N1*fRn3.Rndm();
-    TPerson* p = location->Person(ip);
-    p->fHealthStatus = TPerson::kIncubating;
-    p->fTimeOfInfection = -1;
-  }
-//-----------------------------------------------------------------------------
-// second location
-//-----------------------------------------------------------------------------
-  location = new TLocation(1,x2,y2,r2);
-  fListOfLocations->Add(location);
-
-  for (int i=0; i<N2; i++) {
-    double phi = fRn3.Rndm(i)*2*M_PI;
-    double r   = fRn3.Rndm(i)*r2;
-
-    float dx    = r*cos(phi);
-    float dy    = r*sin(phi);
-
-    TPerson* p = new TPerson (i,dx,dy,location,kGreen+2);
-
-    fListOfPeople->Add(p);
-    location->AddPerson(p);
-  }
-//-----------------------------------------------------------------------------
-// infect some people
-//-----------------------------------------------------------------------------
-  for (int i=0; i<NInf2; i++) {
-    int ip = N2*fRn3.Rndm();
-    TPerson* p = location->Person(ip);
-    p->fHealthStatus    = TPerson::kIncubating;
-    p->fTimeOfInfection = -1;
-  }
-//-----------------------------------------------------------------------------
-// init data records
-//-----------------------------------------------------------------------------
-  int nl = NLocations();
-  for (int il=0; il<nl;il++) {
-    Location(il)->InitDataRecord(fNDays);
-  }
-//-----------------------------------------------------------------------------
-// draw initial configuration
-//-----------------------------------------------------------------------------
-  fCanvas = new TCanvas("nut", "FirstSession",900,900);
-  Draw();
 }
 
 //-----------------------------------------------------------------------------
@@ -229,11 +156,11 @@ void TCovid19Sim::ModelInfectionTransfer(TPerson* P1, TPerson* P2, int Time) {
 // calculate distance between the two - this could lead to an infection
 // start from the simplest assumption
 //-----------------------------------------------------------------------------
-  float dx   = P1->fDx-P2->fDx;
-  float dy   = P1->fDy-P2->fDy;
-  float dist = sqrt(dx*dx+dy*dy);
+  float dx    = P1->fDx-P2->fDx;
+  float dy    = P1->fDy-P2->fDy;
+  float dist2 = dx*dx+dy*dy;
 
-  if (dist < fDrMin) {
+  if (dist < fDrMin*fDrMin2) {
     float r            = fRn3.Rndm(Time);
     if (r < fInfectionProb*P1->fInfectivePower) {
       P2->fHealthStatus    = TPerson::kIncubating;
@@ -271,10 +198,7 @@ void TCovid19Sim::StartTravel(TPerson* P, int Time) {
     last->fIndex = index;
   }
 
-  oldloc->fNPeople -= 1;
-
   newloc->fListOfPeople->Add(P);
-  newloc->fNPeople += 1;
  
   P->fCurrentLocation   = newloc;
   
@@ -292,9 +216,9 @@ void TCovid19Sim::StartTravel(TPerson* P, int Time) {
   // printf(" Time= %5i %p index %5i went on travel from loc %2i to loc %2i;",
   // 	 Time,P,index,oldloc->fIndex,newloc->fIndex);
   // printf(" new_index %5i",newindex);
-  // printf(" np(oldloc),np(newloc):  %5i %5i .. %5i %5i\n",
-  // 	 oldloc->fListOfPeople->GetEntries(),oldloc->fNPeople,
-  // 	 newloc->fListOfPeople->GetEntries(),newloc->fNPeople);
+  // printf(" np(oldloc),np(newloc):  %5i .. %5i\n",
+  // 	 oldloc->fListOfPeople->GetEntries(),
+  // 	 newloc->fListOfPeople->GetEntries());
 
 }
 
@@ -305,7 +229,7 @@ void TCovid19Sim::ModelMovement(int Time) {
 
   for (int il=0; il<nl; il++) {
     TLocation* l = Location(il);
-    int np      = l->fNPeople;
+    int np      = l->NPeople();
 
     for (int i=0; i<np; i++) {
       TPerson* p = l->Person(i);
@@ -396,7 +320,7 @@ void TCovid19Sim::Run() {
       int nl = NLocations();
       for (int iloc=0; iloc<nl; iloc++) {
 	TLocation* loc = Location(iloc);
-	int np = loc->fNPeople;
+	int np = loc->NPeople();
 //-----------------------------------------------------------------------------
 // step 1: evolve individual health status
 //-----------------------------------------------------------------------------
@@ -425,7 +349,7 @@ void TCovid19Sim::Run() {
 // step 4: visualize end of the step
 //-----------------------------------------------------------------------------
       Draw();
-      gSystem->Sleep(100);
+      gSystem->Sleep(fSleepTime);
     }
 //-----------------------------------------------------------------------------
 // in the end of the day, update status and recalculate all important parameters
@@ -455,7 +379,7 @@ void TCovid19Sim::Run() {
       ldr->fNHospitalized  = 0;
       ldr->fNQuarantined   = 0;
 
-      int np = loc->fNPeople;
+      int np = loc->NPeople();
 //-----------------------------------------------------------------------------
 // 
 //-----------------------------------------------------------------------------

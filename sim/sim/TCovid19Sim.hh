@@ -23,7 +23,6 @@ public:
   DataRecord_t*  fDataRecord;
 
   TObjArray* fListOfLocations;
-  TObjArray* fListOfPeople;
 
   TRandom3   fRn3;
 
@@ -73,12 +72,16 @@ public:
   void Draw(Option_t* Opt = "");
 
 
+  TRandom3* RnGen() { return &fRn3; }
+
   TLocation* Location(int I) { return (TLocation*) fListOfLocations->UncheckedAt(I); }
-  TPerson*   Person  (int I) { return (TPerson*  ) fListOfPeople->UncheckedAt(I);    }
 
   int        NLocations() { return fListOfLocations->GetEntriesFast(); }
 
+  void       AddLocation(TLocation* Loc) { fListOfLocations->Add(Loc); }
+
 					// imagine time step = 1 hour
+
   float      TimeInDays(int time_step) { return time_step/24.;}
 
 					// probability of death at home / in the hospital
