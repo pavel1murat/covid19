@@ -20,7 +20,7 @@ class stntuple_helper:
         self.suffix  = ".hh" ;
         self.tmp_dir = "tmp/src/"+self.d1;
         self._debug  = debug
-        if (debug) : print "-------------- building directory: "+self.dirname+'/'+self.subdir
+        if (debug) : print("-------------- building directory: "+self.dirname+'/'+self.subdir)
 #
 #   Accesor
 #
@@ -35,7 +35,7 @@ class stntuple_helper:
 
     def do_codegen(self,cc,script):
         self._env.StntupleCodegen(cc,script);
-        obj = string.replace(cc,".cc",".o");
+        obj = cc.replace(".cc",".o");
         self._env.SharedObject(obj,cc)
         self._list_of_object_files.append(obj);
 
@@ -51,14 +51,14 @@ class stntuple_helper:
         list_of_dict_files    = []
 
         for f in list_of_linkdef_files:
-            linkdef       = string.split(str(f),'/');
+            linkdef       = str(f).split('/');
             linkdef_fn    = linkdef[len(linkdef)-1];
 
             if (self._debug): 
                 print ("linkdef_fn = ",linkdef_fn)
 
             if (not linkdef_fn in skip_list):
-                clname        = string.replace(linkdef_fn,"_linkdef.h","");
+                clname        = linkdef_fn.replace("_linkdef.h","");
                 include       = self.subdir+'/'+clname+self.suffix;
             
                 dict          = '#/tmp/src/'+self.d1+'/'+clname+'_dict.cxx';
@@ -75,11 +75,11 @@ class stntuple_helper:
         list   = [];
 
         for dict in list_of_dict_files:
-            obj_cxx_file = string.replace(dict,".cxx",".o");
+            obj_cxx_file = dict.replace(".cxx",".o");
             list.append(obj_cxx_file);
             self._list_of_object_files.append(obj_cxx_file);
         
-            include  = string.replace(dict,".cxx",".h");
+            include  = dict.replace(".cxx",".h");
             self._env.SharedObject(obj_cxx_file,dict)
 
 
@@ -89,7 +89,7 @@ class stntuple_helper:
 
         for f in list_of_f_files:
             if (not f in skip_list):
-                o = '#tmp/src/'+self.d1+'/'+string.split(f,'.')[0]+'.o'
+                o = '#tmp/src/'+self.d1+'/'+f.split('.')[0]+'.o'
                 self._list_of_object_files.append(o);
                 self._env.SharedObject(o,f)
 
@@ -103,7 +103,7 @@ class stntuple_helper:
                 if (self._debug):
                     print (".cc file: "+cc)
                     
-                o = '#/tmp/src/'+self.d1+'/'+string.split(cc,'.')[0]+'.o'
+                o = '#/tmp/src/'+self.d1+'/'+cc.split('.')[0]+'.o'
                 self._list_of_object_files.append(o);
                 self._env.SharedObject(o,cc)
 
@@ -126,10 +126,10 @@ class stntuple_helper:
                 if (self._debug):
                     print ("module file: "+module)
                     
-                o = '#/tmp/src/'+self.d1+'/'+string.split(module,'.')[0]+'.o'
+                o = '#/tmp/src/'+self.d1+'/'+module.split('.')[0]+'.o'
                 self._env.SharedObject(o,module)
 
-                mname = string.split(os.path.basename(module),'.')[0];
+                mname = os.path.basename(module).split('.')[0];
                 lib   = '#/lib/libmu2e_'+self.dirname+'_'+mname+'.so';
                 if (self._debug):
                     print ("o: "+o, "lib:"+lib)
