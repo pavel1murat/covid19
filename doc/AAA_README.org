@@ -177,7 +177,7 @@ a = ana.Ana(); a.fData=data;
 
 import plot_hist
 
-countries='US,Israel,Russia'
+countries='US;Israel;Russia'
 plot_hist.plot_countries(a,countries,'totc')
 
 states='US:New_York,US:New_Jersey,US:Washington,US:Minnesota,US:Florida,US:Illinois,US:Wisconsin'

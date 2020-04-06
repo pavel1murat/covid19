@@ -5,7 +5,7 @@ TCovid19Sim* sim;
 
 
 //-----------------------------------------------------------------------------
-void run(int NDays) {
+void run(int NDays, int TransferInfection = 1) {
 //-----------------------------------------------------------------------------
 // initialization
 //-----------------------------------------------------------------------------
@@ -14,8 +14,8 @@ void run(int NDays) {
   float x0   [nloc] = { 0.25, 0.65 } ;
   float y0   [nloc] = { 0.25, 0.65 } ;
   float r    [nloc] = { 0.20, 0.20 } ;
-  int   np   [nloc] = { 500, 1000 };
-  int   ninf [nloc] = {    1,    0 };
+  int   np   [nloc] = { 1000, 4000 } ;
+  int   ninf [nloc] = {    1,    0 } ;
   int   color[nloc] = { kBlue+1, kGreen };
 
 
@@ -33,6 +33,8 @@ void run(int NDays) {
   sim->fInfectionProb = 0.1;
   sim->SetSleepTime(1);
 
+  sim->fTransferInfection = TransferInfection;
+
   sim->Draw();
 
   sim->Run();
@@ -48,7 +50,7 @@ void run2(int NDays) {
   float x0   [nloc] = { 0.25, 0.65 } ;
   float y0   [nloc] = { 0.25, 0.65 } ;
   float r    [nloc] = { 0.10, 0.10 } ;
-  int   np   [nloc] = { 200,   400 } ;
+  int   np   [nloc] = { 1000, 400 } ;
   int   ninf [nloc] = {    1,    0 } ;
   int   color[nloc] = { kBlue+1, kGreen };
 

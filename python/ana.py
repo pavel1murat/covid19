@@ -3,11 +3,13 @@
 #------------------------------------------------------------------------------
 # a.fHist[country][key] - histogram
 #------------------------------------------------------------------------------
+from inspect  import currentframe, getframeinfo
+from datetime import *
+from math     import *
+
 from ROOT     import TCanvas, TGraphErrors, TGraph, TH1F, TH2F
 from ROOT     import gROOT, gPad
 from array    import array
-from datetime import *
-from math     import *
 
 from Covid19Data import Covid19Data
 
@@ -69,6 +71,15 @@ class StateHistograms:
     def hist_record(self,name):
         return self.fTotalHistograms[name];
 
+    def list_of_counties(self):
+        return self.fCountyHistograms.keys()
+
+    def hist_record(self,county,name):
+        if (county == 'total'):
+            return self.fTotalHistograms[name];
+        else:
+            return self.fCountyHistograms[county].hist_record(name);
+
 #------------------------------------------------------------------------------
 class CountryHistograms:
 
@@ -91,9 +102,10 @@ class CountryHistograms:
 #------------------------------------------------------------------------------
 class HistData:
 
-    def __init__(self):
+    def __init__(self,debug = 0):
         self.fTotalHistograms   = {};   # total histograms
         self.fCountryHistograms = {}  # by country histograms
+        self.fDebug             = debug;
 
     def list_of_countries(self):
         return self.fCountryHistograms.keys()
@@ -108,33 +120,54 @@ class HistData:
     def hist_record(self,country,state,name):
         return self.fCountryHistograms[country].hist_record(state,name)
 
-    def add_histogram(self,country,state,hr):
-        print('** add histogram');
+    def add_histogram(self,country_code,hr):
+        # print('** add histogram');
+
+        items   = country_code.split(':');
+        country = items[0]
+        state   = 'total'
+        county  = 'total'
+
+        if (len(items) > 1): state   = items[1]
+        if (len(items) > 2): county  = items[2]
 
         key = hr.fKey;
 
         chd =   self.fCountryHistograms[country];
         print('chd: ',chd)
-        if (state == 'total'):
+
+        if (state == 'total') or (state == None):
             chd.fTotalHistograms.update({key:hr})
         else:
-            print('chd.list_of_states:',chd.list_of_states())
+            # state is defined
+
+            if (self.fDebug > 0):
+                print('<HistData::add_histogram> >chd.list_of_states:',chd.list_of_states())
+
             if (not state in chd.list_of_states()):
                 chd.fStateHistograms.update({state:StateHistograms()})
             
             shd = chd.fStateHistograms[state];
             print ('country,state',country,state,'shd:',shd)
-            
-            shd.fTotalHistograms.update({key:hr})
+
+            if (county == 'total') or (county == None):
+                shd.fTotalHistograms.update({key:hr})
+            else:
+                # county is defined
+                if (not county in shd.list_of_counties()):
+                    shd.fCountyHistograms.update({county:{}})
+
+                cnty_hd = shd.fCountyHistograms[county];
+                cnty_hd.update({key:hr})
     
 #------------------------------------------------------------------------------
 class Ana:
     def __init__(self, debug = 0): 
 
+        self.fDebug    = debug
         self.fCanvas   = None; # TCanvas( 'c1', 'A Simple Graph with error bars', 200, 10, 700, 500 )
         self.fGraph    = None
-        self.fHistData = HistData()
-        self.fDebug    = debug
+        self.fHistData = HistData(debug)
            
 #------------------------------------------------------------------------------
     def variable(self,data,i,key):
@@ -204,23 +237,28 @@ class Ana:
 
         if (name == None) : name = key;
 
-        if (self.fDebug > 0): print ('<ana::fill> country_code, key = %s %s'%(country_code,key))
+        if (self.fDebug > 0): print ('<ana::fill START> country_code, key = %s %s'%(country_code,key))
 
-        c              = country_code.split(':');
-        country        = c[0];
-        country_data   = self.fData.country_data(country);
-        list_of_states = None    # by default, assume fill only country totals
+        c                = country_code.split(':');
+        country          = c[0];
+        country_data     = self.fData.country_data(country);
+        list_of_states   = None    # by default, assume fill only country totals
+        list_of_counties = None    # by default, assume fill only country totals
 
         if (len(c) > 1):
             if (c[1] == 'all'): list_of_states = country_data.list_of_states()
-            else              : list_of_states = [c[1]]; # assume one state
+            else              : list_of_states = c[1].split(',')   # assume one state
             
+            if (len(c) > 2):
+                list_of_counties = c[2]
+
         self.fHistData.add_country(country)
 
         cd = self.fHistData.country_data(country)
 
-        if (list_of_states == None):     # fill only country totals
+        if (self.fDebug > 0): print('<ana::fill> list_of_states =',list_of_states)
 
+        if (list_of_states == None):     # fill only country totals
             state = 'total'
             hr = HistRecord(country_code,key);
             hist_name  = country+'_'+state+'_'+name;
@@ -245,43 +283,111 @@ class Ana:
                 bin = nd+1;
                 hr.fHist.SetBinContent(bin,var)
                 hr.fHist.SetBinError  (bin,err)
-                
-            self.fHistData.add_histogram(country,'total',hr);
+
+            self.fHistData.add_histogram(country+':total',hr);
         else:
-            
-            for state in list_of_states:
-                hr         = HistRecord(country_code,key);
-        
-                hist_name  = country+'_'+state+'_'+name;
-                hist_title = country+':'+state+':'+name;
+#------------------------------------------------------------------------------
+# one or several states
+#------------------------------------------------------------------------------
+            if (self.fDebug > 0): 
+                frameinfo = getframeinfo(currentframe())
+                print('<ana::fill> line:',frameinfo.lineno,' list_of_states:',list_of_states,' list_of_counties:',list_of_counties)
 
-                nb = 100
-                hr.fHist = TH1F(hist_name,hist_title,nb,t0,t0+nb*3600*24.)
-                hr.fHist.GetXaxis().SetTimeDisplay(1);
-                hr.fHist.SetMarkerStyle(20);
+            if (list_of_counties == None) or (list_of_counties == 'total'):   # assume state or country totals
 
-                # x = array('i',[])
+                for state in list_of_states:
+                    ccode      = country+':'+state+':total'
+                    hr         = HistRecord(ccode,key);
+                    
+                    hist_name  = country+'_'+state+'_'+name;
+                    hist_title = country+':'+state+':'+name;
 
-                state_totals = country_data.state_data(state).fTotals   # state totals
+                    nb         = 100
+                    hr.fHist   = TH1F(hist_name,hist_title,nb,t0,t0+nb*3600*24.)
+                    hr.fHist.GetXaxis().SetTimeDisplay(1);
+                    hr.fHist.SetMarkerStyle(20);
 
-                nr = len(state_totals)
+                    # x = array('i',[])
+
+                    
+                    data = country_data.fTotals   # country totals
+                    if (state != 'total'): data = country_data.state_data(state).fTotals # state totals
+
+                    nr = len(data)
                 
-                for i in range(0,nr):
-                    r         = state_totals[i]
-                    (var,err) = self.variable(state_totals,i,key);
+                    if (self.fDebug>0): 
+                        frameinfo = getframeinfo(currentframe())
+                        print('<ana::fill> line:',frameinfo.lineno,'state='+state,' hist_name=',hist_name,' nr=',nr,)
 
-                    nd = (r['ts'].date()-d0.date()).days
+                    for i in range(0,nr):
+                        r         = data[i]
+                        (var,err) = self.variable(data,i,key);
 
-                    if (self.fDebug > 0) : print ("nd, var,err:",(nd,var,err)) 
+                        nd = (r['ts'].date()-d0.date()).days
 
-                    bin = nd+1;
-                    hr.fHist.SetBinContent(bin,var)
-                    hr.fHist.SetBinError  (bin,err)
-#------------------------------------------------------------------------------
-#           ^ histogram filled, save it and return the pointer to it
-#------------------------------------------------------------------------------
-                self.fHistData.add_histogram(country,state,hr);
+                        if (self.fDebug > 0) : print ("<ana::fill> nd, var,err:",(nd,var,err)) 
 
+                        bin = nd+1;
+                        hr.fHist.SetBinContent(bin,var)
+                        hr.fHist.SetBinError  (bin,err)
+                    #------------------------------------------------------------------------------
+                    #                   ^ histogram filled, save it and return the pointer to it
+                    #------------------------------------------------------------------------------
+                    ccode=country+':'+state
+                    if (self.fDebug>0): 
+                        frameinfo = getframeinfo(currentframe())
+                        print('<ana::fill> line:',frameinfo.lineno,'ccode='+ccode)
+                    self.fHistData.add_histogram(ccode,hr);
+            # list of counties defined, assume one state
+            else:
+                #------------------------------------------------------------------------------
+                # <country:state:list_of_counties> : assume one state, one or several counties
+                #------------------------------------------------------------------------------
+                state    = c[1]
+                sdata    = country_data.state_data(state)
+                counties = list_of_counties.split(',');
+
+                print('<ana::fill> fill county hists, list_of_counties:',list_of_counties,' counties:',counties)
+
+                for county in counties:
+                    ccode      = country+':'+state+':'+county
+                    print ('<ana::fill> county='+county,' ccode='+ccode,' key='+key)
+                    hr         = HistRecord(ccode,key);
+
+                    print('<ana::fill> hr = ',hr)
+
+                    hist_title = ccode+':'+name;
+                    hist_name  = hist_title.replace(':','_');
+
+                    nb         = 100
+                    hr.fHist   = TH1F(hist_name,hist_title,nb,t0,t0+nb*3600*24.)
+                    hr.fHist.GetXaxis().SetTimeDisplay(1);
+                    hr.fHist.SetMarkerStyle(20);
+                        
+                    # x = array('i',[])
+                        
+                    data = sdata.county_data(county)   # state totals
+
+                    nr = len(data)
+                    
+                    for i in range(0,nr):
+                        r         = data[i]
+                        (var,err) = self.variable(data,i,key);
+                                
+                        nd = (r['ts'].date()-d0.date()).days
+                                
+                        if (self.fDebug > 0): print ("<ana::fill> nd, var,err:",(nd,var,err)) 
+
+                        bin = nd+1;
+                        hr.fHist.SetBinContent(bin,var)
+                        hr.fHist.SetBinError  (bin,err)
+                    #------------------------------------------------------------------------------
+                    # county histogram filled, save it and return the pointer to it
+                    #------------------------------------------------------------------------------
+                    if (self.fDebug > 0): print('<ana::fill> ccode='+ccode);
+                    self.fHistData.add_histogram(ccode,hr);
+
+        if (self.fDebug > 0): print('<ana::fill> END')
         return hr
 #------------------------------------------------------------------------------
 # end of the class definition

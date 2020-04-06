@@ -48,6 +48,8 @@ public:
   int        fNHospitalized;            // duplication, but can live with
   int        fMaxNHospitalized;		// limit on the number of hospitalized people
 
+  int        fTransferInfection;
+
   TCanvas*   fCanvas;
 //-----------------------------------------------------------------------------
 // functions

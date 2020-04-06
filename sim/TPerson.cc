@@ -122,13 +122,13 @@ void TPerson::ReturnHome(int Time, TRandom3* RnGen) {
   fDx = r*cos(phi);
   fDy = r*sin(phi);
 
-  printf(" Time= %5i %p index %5i returned home from loc %2i to loc %2i;",
-   	 Time,this,index,oldloc->fIndex,newloc->fIndex);
+  // printf(" Time= %5i %p index %5i returned home from loc %2i to loc %2i;",
+  //  	 Time,this,index,oldloc->fIndex,newloc->fIndex);
 
-  printf(" new_index %5i",newindex);
-  printf(" np(oldloc),np(newloc):  %5i .. %5i\n",
-   	 oldloc->fListOfPeople->GetEntries(),
-   	 newloc->fListOfPeople->GetEntries());
+  // printf(" new_index %5i",newindex);
+  // printf(" np(oldloc),np(newloc):  %5i .. %5i\n",
+  //  	 oldloc->fListOfPeople->GetEntries(),
+  //  	 newloc->fListOfPeople->GetEntries());
 }
 
 //-----------------------------------------------------------------------------

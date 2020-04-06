@@ -13,6 +13,8 @@ TCovid19Sim::TCovid19Sim(int NDays) {
   fDrMin               = 0.01;
   fInfectionProb       = 0.05;
 
+  fTransferInfection   = 1;
+
   fHospitalizationProb = 0.2;    // claim that 20% need to be hospitalized
   fDeathProb           = 0.02;   // out of infected and accepted to the hospital
   fDeathAtHomeProb     = 0.06;   // out of infected and quarantined at home
@@ -51,97 +53,97 @@ void TCovid19Sim::Draw(Option_t* Opt) {
 
 //-----------------------------------------------------------------------------
 // Time - in hours from the start of the simulation
+// health status evolves only for infected people, to speed up the execution,
+// the check of current health status needs to be done 
 //-----------------------------------------------------------------------------
 void TCovid19Sim::UpdateHealthStatus(TPerson* P, int Time) {
 
-  if (P->IsInfected()) {
 //-----------------------------------------------------------------------------
 // check if the recovery time has come
 //-----------------------------------------------------------------------------
-    if (P->fHealthStatus == TPerson::kIncubating) {
-      float dt = TimeInDays(Time - P->fTimeOfInfection);
-      if (dt > P->IncubationPeriod()) {
+  if (P->fHealthStatus == TPerson::kIncubating) {
+    float dt = TimeInDays(Time - P->fTimeOfInfection);
+    if (dt > P->IncubationPeriod()) {
 //-----------------------------------------------------------------------------
 // the person transitions from the incubating period to showing the symptoms
 // he could be restricted 
 //-----------------------------------------------------------------------------
-	P->fHealthStatus = TPerson::kSymptomatic;
-	P->fOnsetTime    = Time;
-      }
+      P->fHealthStatus = TPerson::kSymptomatic;
+      P->fOnsetTime    = Time;
     }
-    else if (P->fHealthStatus == TPerson::kSymptomatic) {
+  }
+  else if (P->fHealthStatus == TPerson::kSymptomatic) {
 //-----------------------------------------------------------------------------
-// person with symptoms: either free-to-move, or hospitalized or quarantined
+// person with symptoms: either free-to-move, or hospitalized, or quarantined
 //-----------------------------------------------------------------------------
-      if (P->IsFreeToMove()) {
+    if (P->IsFreeToMove()) {
 				// shows symptoms but not hospitalized/quarantined yet
-	float dt = TimeInDays(Time-P->fOnsetTime);
-	if (dt > P->fSymptomaticPeriod) {
+      float dt = TimeInDays(Time-P->fOnsetTime);
+      if (dt > P->fSymptomaticPeriod) {
 //-----------------------------------------------------------------------------
 // 20% gets hospitalized , if there is enough beds
 //-----------------------------------------------------------------------------
-	  double p_hosp = fRn3.Rndm(-1);
-	  if (p_hosp < fHospitalizationProb) {
-	    if (this->fNHospitalized < this->fMaxNHospitalized) {
-	      P->fTimeOfHospitalization = Time;
-	      P->fMovementStatus        = TPerson::kHospitalized;
-	    
-	      this->fNHospitalized     += 1;
-	    }
-	  }
-	  else {
-//-----------------------------------------------------------------------------
-// could not get hospitalized, not moving, sick at home, the clock is ticking
-//-----------------------------------------------------------------------------
-	    P->fMovementStatus        = TPerson::kQuarantined;
+	double p_hosp = fRn3.Rndm(-1);
+	if (p_hosp < fHospitalizationProb) {
+	  if (this->fNHospitalized < this->fMaxNHospitalized) {
 	    P->fTimeOfHospitalization = Time;
+	    P->fMovementStatus        = TPerson::kHospitalized;
+	    
+	    this->fNHospitalized     += 1;
 	  }
 	}
 	else {
 //-----------------------------------------------------------------------------
+// could not get hospitalized, not moving, sick at home, the clock is ticking
+//-----------------------------------------------------------------------------
+	  P->fMovementStatus        = TPerson::kQuarantined;
+	  P->fTimeOfHospitalization = Time;
+	}
+      }
+      else {
+//-----------------------------------------------------------------------------
 // dt < hospitalization time, sick person still moving around, 
 // the person's infecting capability increases by x2 (assumption)
 //-----------------------------------------------------------------------------
-	  if (P->fInfectivePower == 1) P->fInfectivePower = 2;
-	}
+	if (P->fInfectivePower == 1) P->fInfectivePower = 2;
       }
-      else if (P->fMovementStatus == TPerson::kQuarantined) {
+    }
+    else if (P->fMovementStatus == TPerson::kQuarantined) {
 //-----------------------------------------------------------------------------
 // person is not free to move - quarantined at home
 //-----------------------------------------------------------------------------
-	float dt = TimeInDays(Time - P->fTimeOfInfection);
-	if (dt > P->RecoveryPeriod()) {
-	  double x = fRn3.Rndm(-1);
-	  if (x < DeathAtHomeProb(P)) {               // a small number
-	    P->fHealthStatus = TPerson::kDead;
-	    P->fTimeOfDeath  = Time;
-	  }
-	  else {
+      float dt = TimeInDays(Time - P->fTimeOfInfection);
+      if (dt > P->RecoveryPeriod()) {
+	double x = fRn3.Rndm(-1);
+	if (x < DeathAtHomeProb(P)) {               // a small number
+	  P->fHealthStatus = TPerson::kDead;
+	  P->fTimeOfDeath  = Time;
+	}
+	else {
 					// person recovers
-	    P->fHealthStatus   = TPerson::kImmune;
-	    P->fTimeOfRecovery = Time;
-	    P->fMovementStatus = TPerson::kFreeToMove;
-	  }
+	  P->fHealthStatus   = TPerson::kImmune;
+	  P->fTimeOfRecovery = Time;
+	  P->fMovementStatus = TPerson::kFreeToMove;
 	}
       }
-      else if (P->fMovementStatus == TPerson::kHospitalized) {
+    }
+    else if (P->fMovementStatus == TPerson::kHospitalized) {
 //-----------------------------------------------------------------------------
 // person is hospitalized, not free to move
 //-----------------------------------------------------------------------------
-	float dt = TimeInDays(Time - P->fTimeOfInfection);
-	if (dt > P->RecoveryPeriod()) {
+      float dt = TimeInDays(Time - P->fTimeOfInfection);
+      if (dt > P->RecoveryPeriod()) {
+	
+	double x = fRn3.Rndm(-1);
 
-	  double x = fRn3.Rndm(-1);
-
-	  if (x < DeathInTheHospitalProb(P)) {                       // a small number
-	    P->fHealthStatus   = TPerson::kDead;
-	    P->fTimeOfDeath    = Time;
-	  }
-	  else {                                              // recovered
-	    P->fHealthStatus   = TPerson::kImmune;
-	    P->fMovementStatus = TPerson::kFreeToMove;
-	    P->fTimeOfRecovery = Time;
-	  }
+	if (x < DeathInTheHospitalProb(P)) {                       // a small number
+	  P->fHealthStatus   = TPerson::kDead;
+	  P->fTimeOfDeath    = Time;
+	}
+	else {                                              // recovered
+	  P->fHealthStatus   = TPerson::kImmune;
+	  P->fMovementStatus = TPerson::kFreeToMove;
+	  P->fTimeOfRecovery = Time;
 	}
       }
     }
@@ -160,13 +162,13 @@ void TCovid19Sim::ModelInfectionTransfer(TPerson* P1, TPerson* P2, int Time) {
   float dy    = P1->fDy-P2->fDy;
   float dist2 = dx*dx+dy*dy;
 
-  if (dist < fDrMin*fDrMin2) {
+  if (dist2 < fDrMin*fDrMin) {
     float r            = fRn3.Rndm(Time);
     if (r < fInfectionProb*P1->fInfectivePower) {
       P2->fHealthStatus    = TPerson::kIncubating;
       P2->fTimeOfInfection = Time;
 
-      P1->fNInfected += 1;
+      P1->fNInfected      += 1;
     }
   }
 }
@@ -238,7 +240,7 @@ void TCovid19Sim::ModelMovement(int Time) {
 // skip them
 //-----------------------------------------------------------------------------
       if (p == nullptr) {
-	printf(" --- i = %5i, skip nullptr\n",i);
+	//	printf(" --- i = %5i, skip nullptr\n",i);
 	continue;
       }
 
@@ -326,17 +328,26 @@ void TCovid19Sim::Run() {
 //-----------------------------------------------------------------------------
 	for (int i=0; i<np; i++) {
 	  TPerson* p = (TPerson*) loc->Person(i);
-	  UpdateHealthStatus(p,time_step);
+	  if (p->IsInfected()) UpdateHealthStatus(p,time_step);
 	}
 //-----------------------------------------------------------------------------
 // step 2: model infection transfer between the two people currently at that location
 //-----------------------------------------------------------------------------
-	for (int i1=0; i1<np; i1++) {
-	  TPerson* p1 = (TPerson*) loc->Person(i1); 
-	  for (int i2=i1+1; i2<np; i2++) {
-	    TPerson* p2 = (TPerson*) loc->Person(i2); 
-	    if      (p1->IsInfected() && p2->IsSusceptible()) ModelInfectionTransfer(p1,p2,time_step);
-	    else if (p2->IsInfected() && p1->IsSusceptible()) ModelInfectionTransfer(p2,p1,time_step);
+	if (fTransferInfection != 0) {
+	  for (int i1=0; i1<np; i1++) {
+	    TPerson* p1 = (TPerson*) loc->Person(i1); 
+	    if (p1->IsInfected()) {
+	      for (int i2=i1+1; i2<np; i2++) {
+		TPerson* p2 = (TPerson*) loc->Person(i2); 
+		if  (p2->IsSusceptible()) ModelInfectionTransfer(p1,p2,time_step);
+	      }
+	    }
+	    else if (p1->IsSusceptible()) {
+	      for (int i2=i1+1; i2<np; i2++) {
+		TPerson* p2 = (TPerson*) loc->Person(i2); 
+		if (p2->IsInfected()) ModelInfectionTransfer(p2,p1,time_step);
+	      }
+	    }
 	  }
 	}
       }
@@ -348,8 +359,7 @@ void TCovid19Sim::Run() {
 //-----------------------------------------------------------------------------
 // step 4: visualize end of the step
 //-----------------------------------------------------------------------------
-      Draw();
-      gSystem->Sleep(fSleepTime);
+      // gSystem->Sleep(fSleepTime);
     }
 //-----------------------------------------------------------------------------
 // in the end of the day, update status and recalculate all important parameters
@@ -406,6 +416,8 @@ void TCovid19Sim::Run() {
       dr->fNHospitalized  += ldr->fNHospitalized;
       dr->fNQuarantined   += ldr->fNQuarantined;
     }
+
+    Draw();
     printf(" >>> end of day %3i\n",day);
   }
 //-----------------------------------------------------------------------------
