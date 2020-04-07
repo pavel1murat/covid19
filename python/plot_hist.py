@@ -113,10 +113,12 @@ def plot_countries(ana,list_of_ccountries='US',list_of_hists='totc',*args, **kwa
 
     start     = kwargs.get('minx'   , None)  # '2020-03-20'
     end       = kwargs.get('maxx'   , None)  # '2020-03-20'
-    print_pdf = kwargs.get('print'  , None)  # 
+    print_pdf = kwargs.get('pdf'    , None)  # 
+    print_png = kwargs.get('png'    , None)  # 
     logy      = kwargs.get('logy'   , 0   )  # 
     miny      = kwargs.get('miny'   , None)  # 
     maxy      = kwargs.get('maxy'   , None)  # 
+    opt_glob  = kwargs.get('opt'    , ''  )  # 
 
     ntot      = 0;
     ccountries  = list_of_ccountries.split(';');
@@ -187,7 +189,7 @@ def plot_countries(ana,list_of_ccountries='US',list_of_hists='totc',*args, **kwa
                         h.fHist.SetTitle(title)
                         if (miny): h.fHist.SetMinimum(miny)
                         if (maxy): h.fHist.SetMaximum(maxy)
-                        h.Draw(opt='',dmin=start,dmax=end,col=color[ihist])
+                        h.Draw(opt=opt_glob,dmin=start,dmax=end,col=color[ihist])
                     else: 
                         h.Draw(opt='sames',col= color[ihist])
 
@@ -224,7 +226,7 @@ def plot_countries(ana,list_of_ccountries='US',list_of_hists='totc',*args, **kwa
                         h.fHist.SetTitle(title)
                         if (miny): h.fHist.SetMinimum(miny)
                         if (maxy): h.fHist.SetMaximum(maxy)
-                        h.Draw(opt='',dmin=start,dmax=end,col=color[ihist])
+                        h.Draw(opt=opt_glob,dmin=start,dmax=end,col=color[ihist])
                     else: 
                         h.Draw(opt='sames',col= color[ihist])
 
@@ -253,4 +255,8 @@ def plot_countries(ana,list_of_ccountries='US',list_of_hists='totc',*args, **kwa
 
     if (print_pdf):
         fn = datetime.now().strftime("%Y-%m-%d")+'-'+hist+'-countries.pdf'
+        c.Print(fn)
+
+    if (print_png):
+        fn = datetime.now().strftime("%Y-%m-%d")+'-'+print_png+'.png'
         c.Print(fn)

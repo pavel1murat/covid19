@@ -75,10 +75,8 @@ class StateHistograms:
         return self.fCountyHistograms.keys()
 
     def hist_record(self,county,name):
-        if (county == 'total'):
-            return self.fTotalHistograms[name];
-        else:
-            return self.fCountyHistograms[county].hist_record(name);
+        if (county == 'total'): return self.fTotalHistograms[name];
+        else:                   return self.fCountyHistograms[county][name];
 
 #------------------------------------------------------------------------------
 class CountryHistograms:
@@ -93,11 +91,20 @@ class CountryHistograms:
     def list_of_states(self):
         return self.fStateHistograms.keys()
 
-    def hist_record(self,state,name):
-        if (state == 'total'):
+    def hist_record(self,state_code,name):
+
+        items = state_code.split(':')
+        state = items[0]
+
+        county = 'total'
+        if (len(items) > 1): county = items[1]
+
+        print('<CountryHistograms::hist_record> state_code:',state_code,' state:',state,' county:',county,' name:',name)
+
+        if (state == 'total'): 
             return self.fTotalHistograms[name];
         else:
-            return self.fStateHistograms[state].hist_record(name);
+            return self.fStateHistograms[state].hist_record(county,name);
 
 #------------------------------------------------------------------------------
 class HistData:
@@ -117,8 +124,18 @@ class HistData:
     def country_data(self,country):
         return self.fCountryHistograms[country]
 
-    def hist_record(self,country,state,name):
-        return self.fCountryHistograms[country].hist_record(state,name)
+    def hist_record(self,country_code,name):
+
+        items      = country_code.split(':')
+        country    = items[0];
+        state_code = 'total'
+
+        if   (len(items) > 2): state_code=items[1]+':'+items[2]
+        else                 : state_code=items[1]
+
+        print('<HistData::hist_record>: country_code=',country_code,' state_code:',state_code,' name:',name)
+
+        return self.fCountryHistograms[country].hist_record(state_code,name)
 
     def add_histogram(self,country_code,hr):
         # print('** add histogram');
@@ -216,14 +233,8 @@ class Ana:
         return (var,err)
 
 #------------------------------------------------------------------------------
-    def hist(self,country_code,name):  # returns HistRecord
-           
-        c = country_code.split(':')
-        country = c[0];
-        if (len(c) == 1): state = 'total'
-        else            : state = c[1]
-
-        return self.fHistData.hist_record(country,state,name)
+    def hist(self,country_code,name):                        # returns HistRecord
+        return self.fHistData.hist_record(country_code,name)
 
 #------------------------------------------------------------------------------
 # 'country_code' : 'country:state:'
@@ -237,7 +248,8 @@ class Ana:
 
         if (name == None) : name = key;
 
-        if (self.fDebug > 0): print ('<ana::fill START> country_code, key = %s %s'%(country_code,key))
+        if (self.fDebug > 0): 
+            print ('<ana::fill START> country_code, key = %s %s'%(country_code,key))
 
         c                = country_code.split(':');
         country          = c[0];
