@@ -67,12 +67,12 @@ class CountryData:
 #------------------------------------------------------------------------------
 class Covid19Data:
 
-    def __init__(self,dir='/projects/covid19/data/world/txt', debug = 0):
+    def __init__(self, adir = None, debug = 0):
         self.fCountryData = {}
-        self.fDir   = dir
-        self.fDebug = debug
-
-        self.read(dir)  # migrate to JHU data
+        self.fDir         = adir
+        self.fDebug       = debug
+        
+        if (adir): self.read(adir)                   # JHU data
 
     def list_of_countries(self):
         return self.fCountryData.keys();
@@ -258,7 +258,9 @@ class Covid19Data:
 
             w = val.split(sep);
                             
-            if ('/' in w[0]): f1='%m/%d/%Y'
+            if ('/' in w[0]): 
+                if (len(w[0].split('/')[2]) == 2): f1='%m/%d/%y'
+                else                             : f1='%m/%d/%Y'
             else            : f1='%Y-%m-%d'
 
             if (len(w[1].split(':')) == 3): f2='%H:%M:%S'
@@ -387,13 +389,13 @@ class Covid19Data:
                     ctd1.append(r)
 
 #------------------------------------------------------------------------------
-    def read(self,dir):
+    def read(self,adir):
 
         if (self.fDebug > 0) : print("<Covid19Data::read> dir = %s",dir);
         
         nlines = 0;
         data   = {}                  # holder of all data
-        for fn in sorted(pathlib.Path(dir).glob('*.csv')):
+        for fn in sorted(pathlib.Path(adir).glob('*.csv')):
 #------------------------------------------------------------------------------
 #       ^ read new file and calculate totals. All data in a single file are assumed
 #         to have the same timestamp
@@ -488,7 +490,7 @@ class Covid19Data:
 # end of the class definition
 #------------------------------------------------------------------------------
 if (__name__ == '__main__'):
-    dir = '/projects/covid19/data/CSSEGISandData/csse_covid_19_data/csse_covid_19_daily_reports'
+    adir = '/projects/covid19/data/CSSEGISandData/csse_covid_19_data/csse_covid_19_daily_reports'
     # dir = 'test'
-    data = Covid19Data(dir);
+    data = Covid19Data(adir);
     data.print()

@@ -151,7 +151,16 @@ rt:1, time:2020-03-20T18:58:00+00:00, uts:1584730680, country:usa, state:New_Yor
 * data: file:datag
 * *------------------------------------------------------------------------------*
 * *WORK LOG*                                                                  
-*** <2020-04-01 Wed> *TCovid19Sim*
+*** <2020-04-11 Sat> *operational instructions, ruby*                              
+
+    load 'population_data_parser.rb'
+    pp = PopulationDataParser.new
+    pp.fetch_url()
+    pp.parse('/projects/covid19/data/population/html/2020-04-10T12:07:50-05:00_world_total.html')
+
+    that creates a .txt file in file:/projects/covid19/data/population/txt
+
+*** <2020-04-01 Wed> *TCovid19Sim*                                                 
 
     need to fix a memory management error - when the 2nd person goes to travel,
     its gets to the 3rd place in the fListOfPeople... thus nullptr's ... 
@@ -180,13 +189,13 @@ import plot_hist
 countries='US;Israel;Russia'
 plot_hist.plot_countries(a,countries,'totc')
 
-states='US:New_York,US:New_Jersey,US:Washington,US:Minnesota,US:Florida,US:Illinois,US:Wisconsin'
+states='US:New_York;US:New_Jersey;US:Washington;US:Minnesota;US:Florida;US:Illinois;US:Wisconsin'
 plot_hist.plot_countries(a,states,'totc',logy=1,miny=0.5)
 
-states='US:Pennsylvania,US:Kentucky,US:North_Carolina,US:South_Carolina,US:Tennessee,US:Florida,US:Louisiana'
+states='US:Pennsylvania;US:Kentucky;US:North_Carolina;US:South_Carolina;US:Tennessee;US:Florida;US:Louisiana'
 plot_hist.plot_countries(a,states,'totc',logy=1,miny=0.5)
 
-states='US:Georgia,US:Virginia,US:West_Virginia,US:Texas,US:New_Mexico,US:Ohio,US:Indiana'
+states='US:Georgia;US:Virginia;US:West_Virginia;US:Texas;US:New_Mexico;US:Ohio;US:Indiana'
 plot_hist.plot_countries(a,states,'totc',logy=1,miny=0.5)
 
 *** <2020-03-27 Fri>  *switch to JHU data*                                         

@@ -22,12 +22,17 @@ def print_elements(list,title)
 end
 
 #------------------------------------------------------------------------------
-def parse_number(text)
+def parse_number(text,format = 'i')
+
   number = 0
   
-  txt = text.sub(',','').sub(/\n+\Z/,'').sub(/\t+\Z/,'').rstrip.lstrip;
+  txt = text.gsub(',','').gsub('%','').gsub(/\n+\Z/,'').gsub(/\t+\Z/,'').rstrip.lstrip;
 
-  if (txt != '') then number = txt.to_i end
+  if (txt != '') then 
+    if    (format == 'i') then number = txt.to_i 
+    elsif (format == 'f') then number = txt.to_f
+    end
+  end
 
   return number
 end
