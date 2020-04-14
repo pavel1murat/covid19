@@ -109,7 +109,7 @@ def plot_us_scandinavia(ana,hist='totc',start=None,end=None):
 #------------------------------------------------------------------------------
 def plot_countries(ana,list_of_ccountries='US',list_of_hists='totc',*args, **kwargs):
     global c,leg;
-    color = [1,2,4,6,8,9,44,46];
+    color = [1,2,4,6,8,9,44,46,55,67,74,88];
 
     start     = kwargs.get('minx'   , None)  # '2020-03-20'
     end       = kwargs.get('maxx'   , None)  # '2020-03-20'

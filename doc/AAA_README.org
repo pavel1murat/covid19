@@ -150,7 +150,27 @@ rt:1, time:2020-03-20T18:58:00+00:00, uts:1584730680, country:usa, state:New_Yor
 * *------------------------------------------------------------------------------*
 * data: file:datag
 * *------------------------------------------------------------------------------*
-* *WORK LOG*                                                                  
+* *WORK LOG*      
+*** <2020-04-13 Mon> Illinois list of counties:
+>>>a.fData.country_data('US').fStateData['Illinois'].list_of_counties()
+
+counties=['Cook', 'DuPage', 'Lake', 'Will', 'Kane','McHenry', 'McLean', 'Sangamon', 'Winnebago', 'Kendall', 'St. Clair',
+          'Clinton', 'Peoria', 'Woodford', 'Madison', 'Kankakee', 'Unassigned','Champaign', 'Cumberland', 'Whiteside', 
+          'Jackson', 'Williamson','LaSalle', 'Washington', 'Adams', 'Christian', 'DeKalb', 'Jo Daviess','Stephenson', 
+          'Livingston', 'Rock Island', 'Alexander', 'Bond','Boone', 'Brown', 'Bureau', 'Calhoun', 'Carroll', 'Cass', 'Clark',
+          'Clay', 'Coles', 'Crawford', 'De Witt', 'Douglas', 'Edgar', 'Edwards','Effingham', 'Fayette', 'Ford', 'Franklin', 
+          'Fulton', 'Gallatin','Greene', 'Grundy', 'Hamilton', 'Hancock', 'Hardin', 'Henderson','Henry', 'Iroquois', 'Jasper',
+	  'Jefferson', 'Jersey', 'Johnson','Knox', 'Lawrence', 'Lee', 'Logan', 'Macon', 'Macoupin', 'Marion',
+          'Marshall', 'Mason', 'Massac', 'McDonough', 'Menard', 'Mercer','Monroe', 'Montgomery', 'Morgan', 'Moultrie', 'Ogle', 
+          'Perry', 'Piatt', 'Pike', 'Pope', 'Pulaski', 'Putnam', 'Randolph', 'Richland', 'Saline', 'Schuyler', 'Scott', 
+          'Shelby', 'Stark', 'Tazewell', 'Union','Vermilion', 'Wabash', 'Warren', 'Wayne', 'White']
+
+	  c1='Cook,DuPage,Lake,Will,Kane,McHenry,McLean,Sangamon,Winnebago,Kendall,St. Clair'
+	  c2='Unassigned,Clinton,Peoria,Woodford,Madison,Kankakee,Champaign,Cumberland,Whiteside'
+	  c8='Cook,Marshall,Mason,Massac,McDonough,Menard,Mercer,Monroe,Montgomery,Morgan,Moultrie,Ogle'
+
+          plot_hist.plot_countries(a,'US:Illinois:'+c1,'totc',miny=0.5,logy=1)
+          
 *** <2020-04-11 Sat> *operational instructions, ruby*                              
 
     load 'population_data_parser.rb'
@@ -187,7 +207,7 @@ a = ana.Ana(); a.fData=data;
 import plot_hist
 
 countries='US;Israel;Russia'
-plot_hist.plot_countries(a,countries,'totc')
+plot_hist.plot_countries(a,countries,'totc',miny=0.5,logy=1)
 
 states='US:New_York;US:New_Jersey;US:Washington;US:Minnesota;US:Florida;US:Illinois;US:Wisconsin'
 plot_hist.plot_countries(a,states,'totc',logy=1,miny=0.5)

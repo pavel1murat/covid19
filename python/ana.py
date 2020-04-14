@@ -158,27 +158,52 @@ class Ana:
                 if (r['totd'] == 0): err = 0
                 else               : err = var*sqrt(1./r['totd']+1./r['totc'])
         elif (key == 'newc'):
-            if (i == len(data)-1):
+            if (i == 0):
                 var = 0;
                 err = 0
             else:
-                rnext = data[i+1]
-                var = rnext['totc']-r['totc']
+                rprev = data[i-1]
+                var = r['totc']-rprev['totc']
                 if (var < 0):
-                    print ("ERROR:",r['ts'].strftime("%Y-%m-%d"),"rnext[\'totc\'], r[\'totc\']:",rnext['totc'],r['totc'])
+                    print ("ERROR:",r['ts'].strftime("%Y-%m-%d"),"rprev[\'totc\'], r[\'totc\']:",rprev['totc'],r['totc'])
+                    err = 0
+                else:
+                    err = sqrt(var)
+                    
+        elif (key == 'newc3d'):
+            if (i < 3):
+                var = 0;
+                err = 0
+            else:
+                r3 = data[i-3]
+                var = (r['totc']-r3['totc'])/3.
+                if (var < 0):
+                    print ("ERROR:",r['ts'].strftime("%Y-%m-%d"),"r3[\'totc\'], r[\'totc\']:",r3['totc'],r['totc'])
                     err = 0
                 else:
                     err = sqrt(var)
                     
         elif (key == 'newd'):
-            if (i == len(data)-1): 
+            if (i == 0): 
                 var = 0;
                 err = 0
             else:
-                rnext = data[i+1]
-                var  = rnext['totd']-r['totd']
+                rprev = data[i-1]
+                var  = r['totd']-rprev['totd']
                 if (var < 0):
-                    print ("ERROR:",r['ts'].strftime("%Y-%m-%d"), "next[\'totd\'], r[\'totd\']:",rnext['totd'],r['totd'])
+                    print ("ERROR:",r['ts'].strftime("%Y-%m-%d"), "rprev[\'totd\'], r[\'totd\']:",rprev['totd'],r['totd'])
+                    err = 0
+                else:
+                    err = sqrt(var)
+        elif (key == 'newd3d'):
+            if (i < 3): 
+                var = 0;
+                err = 0
+            else:
+                r3 = data[i-3]
+                var  = (r['totd']-r3['totd'])/3;
+                if (var < 0):
+                    print ("ERROR:",r['ts'].strftime("%Y-%m-%d"), "r3[\'totd\'], r[\'totd\']:",r3['totd'],r['totd'])
                     err = 0
                 else:
                     err = sqrt(var)
