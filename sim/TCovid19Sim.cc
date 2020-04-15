@@ -200,6 +200,20 @@ void TCovid19Sim::StartTravel(TPerson* P, int Time) {
     last->fIndex = index;
   }
 
+  // remove person from his zone
+
+  TObjArray* oldzone = oldloc->fZone[P->fZoneIX][P->fZoneIY];
+  int npz = oldzone->GetEntries();
+
+  int loc = P->fZoneIndex;
+  oldzone->RemoveAt(loc);
+
+  if (loc < npz) {
+    TPerson* last = (TPerson*) oldzone->RemoveAt(npz-1);
+    oldzone->AddAt(last,loc);
+    last->fZoneIndex = loc;
+  }
+
   newloc->fListOfPeople->Add(P);
  
   P->fCurrentLocation   = newloc;
@@ -209,11 +223,24 @@ void TCovid19Sim::StartTravel(TPerson* P, int Time) {
 
   P->fTimeOfTravelStart = Time;
   P->fTravelStatus      = TPerson::kTraveling;
+  
+  float  rn[2];
+  fRn3.RndmArray(2,rn);
+  
+  P->fDx = newloc->XMax()*(2*rn[0]-1);
+  P->fDy = newloc->YMax()*(2*rn[1]-1);
 
-  double phi  = fRn3.Rndm(Time)*2*M_PI;
-		
-  P->fDx = newloc->fRadius*cos(phi);
-  P->fDy = newloc->fRadius*sin(phi);
+  // 'install' person in a new zone
+
+  float sx = 2*newloc->fXMax/kNZones;
+  float sy = 2*newloc->fYMax/kNZones;
+
+  int   ix = (P->fDx+newloc->fXMax)/sx;
+  int   iy = (P->fDy+newloc->fYMax)/sy;
+
+  TObjArray* newzone = newloc->fZone[ix][iy];
+  newzone->Add(P);
+  P->fZoneIndex      = newzone->GetEntries()-1;
 
   // printf(" Time= %5i %p index %5i went on travel from loc %2i to loc %2i;",
   // 	 Time,P,index,oldloc->fIndex,newloc->fIndex);
@@ -337,6 +364,8 @@ void TCovid19Sim::Run() {
 	  for (int i1=0; i1<np; i1++) {
 	    TPerson* p1 = (TPerson*) loc->Person(i1); 
 	    if (p1->IsInfected()) {
+
+	      int zone = 
 	      for (int i2=i1+1; i2<np; i2++) {
 		TPerson* p2 = (TPerson*) loc->Person(i2); 
 		if  (p2->IsSusceptible()) ModelInfectionTransfer(p1,p2,time_step);

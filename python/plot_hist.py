@@ -20,88 +20,19 @@ def plot_us_states(ana,var):
         country_code=country+':'+state
         ana.fill(country_code,var)
 
-
-def midwest(ana,var,start=None,end=None):
-    global c;
-
-    c = TCanvas("c_midwest","Midwest",1200,800)
-
-    ana.fill('US:New_York' ,var).Draw(opt='',dmin=start,dmax=end)
-    ana.hist('US:New_York' ,var).fHist.SetMinimum(0.5)
-
-    ana.fill('US:Michigan' ,var).Draw(opt='same',col=2)
-    ana.fill('US:Illinois' ,var).Draw(opt='same',col=3)
-    ana.fill('US:Wisconsin',var).Draw(opt='same',col=4)
-    ana.fill('US:Minnesota',var).Draw(opt='same',col=6)
-    ana.fill('US:Ohio'     ,var).Draw(opt='same',col=7)
-    ana.fill('US:Indiana'  ,var).Draw(opt='same',col=21)
-    ana.fill('US:Missouri' ,var).Draw(opt='same',col=44)
-
-    c.Modified()
-    c.Update()
-
-
-def us_recovery(ana,country):
-
-    country_code = country
-
-    ana.fill(country_code,'totc')
-    ana.fill(country_code,'totr')
-
-    ana.hist(country_code,'totc').Draw()
-    ana.hist(country_code,'totr').Draw(opt='same',col=2)
-
-
-
-# def plot_us_tdrate(start=None,end=None):
-def plot_us_tdrate(ana):
-    global c;
-
-    c = TCanvas("c","c",1200,800)
-
-    ana.fill('US:Washington',"tdrate").Draw(opt='')
-    ana.fill("US:Illinois"  ,"tdrate").Draw(opt='sames',col= 2)
-    ana.fill("US:California","tdrate").Draw(opt='sames',col= 4)
-    ana.fill("US:New_York"  ,"tdrate").Draw(opt='sames',col=13)
-
-    fn = datetime.now().strftime("%Y-%m-%d")+'-'+'-tdrate.pdf'
-    c.Print(fn)
-    c.Modified()
-    c.Update()
-
 #------------------------------------------------------------------------------
-def plot_us_israel_russia(ana,hist='totc',start=None,end=None):
-    global c;
-
-    c = TCanvas("c","c",1200,800)
-
-    ana.fill('US'    ,hist).Draw(opt='',dmin=start,dmax=end)
-    ana.fill("Russia",hist).Draw(opt='sames',col= 2)
-    ana.fill("Israel",hist).Draw(opt='sames',col= 4)
-
-    fn = datetime.now().strftime("%Y-%m-%d")+'-us_israel_russia-'+hist+'.pdf'
-
-    c.Print(fn)
-    c.Modified()
-    c.Update()
-
+# not finished: want to plot a distribution of today's death rate for all contries
+# filling the histogram has a completely different logic
+# not finished yet
 #------------------------------------------------------------------------------
-def plot_us_scandinavia(ana,hist='totc',start=None,end=None):
-    global c;
+def plot_countries_date(ana,var,last_date=None):
 
-    c = TCanvas("c_"+hist,"c",1200,800)
-    c.SetLogy(1);
+    for country in ana.fData.fCountryData.keys():
+        ccode = country;
 
-    ana.fill('US'     ,hist).Draw(opt='',dmin=start,dmax=end)
-    ana.fill("Sweden" ,hist).Draw(opt='sames',col= 2)
-    ana.fill("Norway" ,hist).Draw(opt='sames',col= 4)
-    ana.fill("Denmark",hist).Draw(opt='sames',col= 6)
-    ana.fill("Finland",hist).Draw(opt='sames',col= 7)
-
-    fn = datetime.now().strftime("%Y-%m-%d")+'-'+hist+'-us_scandinavia.pdf'
-    c.Print(fn)
-    c.Modified()
-    c.Update()
+        t  = datetime(2019,12,31,).timestamp()
+        d0 = datetime.fromtimestamp(t,timezone.utc)  # this is where the histogram starts
+        t0 = d0.timestamp()
 
 
 #------------------------------------------------------------------------------

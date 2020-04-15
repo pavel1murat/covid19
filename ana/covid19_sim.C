@@ -49,8 +49,8 @@ void run2(int NDays) {
 
   float x0   [nloc] = { 0.25, 0.65 } ;
   float y0   [nloc] = { 0.25, 0.65 } ;
-  float r    [nloc] = { 0.10, 0.10 } ;
-  int   np   [nloc] = { 1000, 400 } ;
+  float r    [nloc] = { 0.20, 0.20 } ;
+  int   np   [nloc] = { 500 , 400  } ;
   int   ninf [nloc] = {    1,    0 } ;
   int   color[nloc] = { kBlue+1, kGreen };
 
@@ -69,9 +69,9 @@ void run2(int NDays) {
   sim->fInfectionProb = 0.1;
   sim->SetSleepTime(1);
 
-  sim->Draw();
+  //  sim->Draw();
 
-  sim->Run();
+  //   sim->Run();
 }
 
 //-----------------------------------------------------------------------------

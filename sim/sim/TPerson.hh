@@ -42,6 +42,10 @@ public:
 
   int              fIndex;              // index at a current location
 
+  int              fZoneIX;		// indices of the zone
+  int              fZoneIY;
+  int              fZoneIndex;
+
   float            fDx;                 // distance from the Location center 
   float            fDy;
   float            fStep;
@@ -73,7 +77,7 @@ public:
   int              fRecoveryCode;          // 0:recovery, 1:death
 
   TPerson();
-  TPerson(int Index, float Dx, float Dy, TLocation* Location, int Color);
+  TPerson(int Index, float Dx, float Dy, TLocation* Location, int ZoneIX, int ZoneIY, int Color);
   ~TPerson();
 
   int  IsSusceptible () { return (fHealthStatus == kSusceptible); }

@@ -151,6 +151,79 @@ rt:1, time:2020-03-20T18:58:00+00:00, uts:1584730680, country:usa, state:New_Yor
 * data: file:datag
 * *------------------------------------------------------------------------------*
 * *WORK LOG*      
+*** <2020-04-14 Tue> US states:
+
+>>> a.fData.fCountryData['US'].fStateData.keys()
+
+dict_keys(['Washington', 'Chicago', 'Illinois', 'California','Arizona', '"Chicago_IL"', '"Boston_MA"', 
+           '"Los_Angeles_CA"',
+	   '"Orange_CA"', '"Santa_Clara_CA"', '"Seattle_WA"', '"San_Benito_CA"',
+	   '"Madison_WI"', '"San_Diego_County_CA"', '"San_Antonio_TX"',
+	   '"Ashland_NE"', '"Travis_CA"', '"Lackland_TX"',
+	   '"Humboldt_County_CA"', '"Sacramento_County_CA"',
+	   '"Omaha_NE_(From_Diamond_Princess)"',
+	   '"Travis_CA_(From_Diamond_Princess)"',
+	   '"Lackland_TX_(From_Diamond_Princess)"', '"Tempe_AZ"',
+	   'Unassigned_Location_(From_Diamond_Princess)', '"Portland_OR"',
+	   '"Snohomish_County_WA"', '"Providence_RI"', '"King_County_WA"',
+	   '"Cook_County_IL"', '"Grafton_County_NH"', '"Hillsborough_FL"',
+	   '"New_York_City_NY"', '"Placer_County_CA"', '"San_Mateo_CA"',
+	   '"Sarasota_FL"', '"Sonoma_County_CA"', '"Umatilla_OR"',
+	   '"Fulton_County_GA"', '"Washington_County_OR"',
+	   '"_Norfolk_County_MA"', '"Berkeley_CA"', '"Maricopa_County_AZ"',
+	   '"Wake_County_NC"', '"Westchester_County_NY"', '"Orange_County_CA"',
+	   '"Contra_Costa_County_CA"', '"Bergen_County_NJ"',
+	   '"Harris_County_TX"', '"San_Francisco_County_CA"',
+	   '"Clark_County_NV"', '"Fort_Bend_County_TX"', '"Grant_County_WA"',
+	   '"Queens_County_NY"', '"Santa_Rosa_County_FL"',
+	   '"Williamson_County_TN"', '"New_York_County_NY"',
+	   '"Unassigned_Location_WA"', '"Montgomery_County_MD"',
+	   '"Suffolk_County_MA"', '"Denver_County_CO"', '"Summit_County_CO"',
+	   '"Chatham_County_NC"', '"Delaware_County_PA"', '"Douglas_County_NE"',
+	   '"Fayette_County_KY"', '"Floyd_County_GA"', '"Marion_County_IN"',
+	   '"Middlesex_County_MA"', '"Nassau_County_NY"', '"Norwell_County_MA"',
+	   '"Ramsey_County_MN"', '"Washoe_County_NV"', '"Wayne_County_PA"',
+	   '"Yolo_County_CA"', '"Santa_Clara_County_CA"',
+	   'Grand_Princess_Cruise_Ship', '"Douglas_County_CO"',
+	   '"Providence_County_RI"', '"Alameda_County_CA"',
+	   '"Broward_County_FL"', '"Fairfield_County_CT"', '"Lee_County_FL"',
+	   '"Pinal_County_AZ"', '"Rockland_County_NY"', '"Saratoga_County_NY"',
+	   '"Charleston_County_SC"', '"Clark_County_WA"', '"Cobb_County_GA"',
+	   '"Davis_County_UT"', '"El_Paso_County_CO"', '"Honolulu_County_HI"',
+	   '"Jackson_County_OR_"', '"Jefferson_County_WA"',
+	   '"Kershaw_County_SC"', '"Klamath_County_OR"', '"Madera_County_CA"',
+	   '"Pierce_County_WA"', '"Plymouth_County_MA"',
+	   '"Santa_Cruz_County_CA"', '"Tulsa_County_OK"',
+	   '"Montgomery_County_TX"', '"Norfolk_County_MA"',
+	   '"Montgomery_County_PA"', '"Fairfax_County_VA"',
+	   '"Rockingham_County_NH"', '"Washington_D.C."',
+	   '"Berkshire_County_MA"', '"Davidson_County_TN"',
+	   '"Douglas_County_OR"', '"Fresno_County_CA"', '"Harford_County_MD"',
+	   '"Hendricks_County_IN"', '"Hudson_County_NJ"', '"Johnson_County_KS"',
+	   '"Kittitas_County_WA"', '"Manatee_County_FL"', '"Marion_County_OR"',
+	   '"Okaloosa_County_FL"', '"Polk_County_GA"', '"Riverside_County_CA"',
+	   '"Shelby_County_TN"', '"Spokane_County_WA"', '"St._Louis_County_MO"',
+	   '"Suffolk_County_NY"', '"Ulster_County_NY"',
+	   '"Unassigned_Location_VT"', '"Unknown_Location_MA"',
+	   '"Volusia_County_FL"', '"Johnson_County_IA"', '"Harrison_County_KY"',
+	   '"Bennington_County_VT"', '"Carver_County_MN"',
+	   '"Charlotte_County_FL"', '"Cherokee_County_GA"', '"Collin_County_TX"',
+	   '"Jefferson_County_KY"', '"Jefferson_Parish_LA"',
+	   '"Shasta_County_CA"', '"Spartanburg_County_SC"', 'New_York',
+	   'Massachusetts', 'Diamond_Princess', 'Grand_Princess', 'Georgia',
+	   'Colorado', 'Florida', 'New_Jersey', 'Oregon', 'Texas',
+	   'Pennsylvania', 'Iowa', 'Maryland', 'North_Carolina',
+	   'South_Carolina', 'Tennessee', 'Virginia', 'Indiana', 'Kentucky',
+	   'District_of_Columbia', 'Nevada', 'New_Hampshire', 'Minnesota',
+	   'Nebraska', 'Ohio', 'Rhode_Island', 'Wisconsin', 'Connecticut',
+	   'Hawaii', 'Oklahoma', 'Utah', 'Kansas', 'Louisiana', 'Missouri',
+	   'Vermont', 'Alaska', 'Arkansas', 'Delaware', 'Idaho', 'Maine',
+	   'Michigan', 'Mississippi', 'Montana', 'New_Mexico', 'North_Dakota',
+	   'South_Dakota', 'West_Virginia', 'Wyoming', 'Alabama', 'Puerto_Rico',
+	   '"Virgin_Islands_U.S."', 'Guam', 'Virgin_Islands',
+	   'United_States_Virgin_Islands', 'US', 'Wuhan_Evacuee',
+	   'American_Samoa', 'Northern_Mariana_Islands', 'Recovered'])
+
 *** <2020-04-13 Mon> Illinois list of counties:
 >>>a.fData.country_data('US').fStateData['Illinois'].list_of_counties()
 
@@ -216,6 +289,9 @@ states='US:Pennsylvania;US:Kentucky;US:North_Carolina;US:South_Carolina;US:Tenne
 plot_hist.plot_countries(a,states,'totc',logy=1,miny=0.5)
 
 states='US:Georgia;US:Virginia;US:West_Virginia;US:Texas;US:New_Mexico;US:Ohio;US:Indiana'
+plot_hist.plot_countries(a,states,'totc',logy=1,miny=0.5)
+
+states='US:Colorado;US:North_Dakota;US:South_Dakota;US:Nevada'
 plot_hist.plot_countries(a,states,'totc',logy=1,miny=0.5)
 
 *** <2020-03-27 Fri>  *switch to JHU data*                                         

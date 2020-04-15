@@ -4,7 +4,8 @@
 
 #include "TObject.h"
 #include "TObjArray.h"
-#include "TEllipse.h"
+// #include "TEllipse.h"
+#include "TPave.h"
 
 #include "covid19/sim/local_types.hh"
 
@@ -12,14 +13,21 @@ class TPerson;
 class TRandom3;
 
 class TLocation: public TObject  {
+
+  enum { kNZones = 10 };
+
 public:
   int           fIndex;
   float         fX0;
   float         fY0;
   float         fRadius;
+  float         fXMax;
+  float         fYMax;
 
   TObjArray*    fListOfPeople;
-  TEllipse*     fEllipse;
+  TPave*        fPave;
+
+  TObjArray*    fZone[kNZones][kNZones];
 
   DataRecord_t* fDataRecord;
   
@@ -35,7 +43,12 @@ public:
 
   TPerson*    Person(int I) { return (TPerson*) fListOfPeople->UncheckedAt(I); }
 
-  float R2() { return fRadius*fRadius; }
+  void    UpdateZone(TPerson* P);
+
+  //  float R2() { return fRadius*fRadius; }
+
+  float  XMax() { return fXMax; }
+  float  YMax() { return fYMax; }
 
   void InitDataRecord(int NDays);
   void Draw(Option_t* Opt = "");

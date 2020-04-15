@@ -15,11 +15,14 @@ TPerson::~TPerson() {
 
 
 //-----------------------------------------------------------------------------
-TPerson::TPerson(int Index, float Dx, float Dy, TLocation* Location, int Color) {
+TPerson::TPerson(int Index, float Dx, float Dy, TLocation* Location, int ZoneIX, int ZoneIY, int Color) {
   fIndex            = Index;
   fDx               = Dx;
   fDy               = Dy;
   fCurrentLocation  = Location;
+  fZoneIX           = ZoneIX;
+  fZoneIY           = ZoneIY;
+
   fHomeLocation     = Location;
   fWorkLocation     = nullptr;
 
@@ -88,10 +91,11 @@ void TPerson::Draw(Option_t* Opt) {
 //-----------------------------------------------------------------------------
 void TPerson::ReturnHome(int Time, TRandom3* RnGen) {
 
+  float   rn[2];
+
   TLocation* oldloc  = fCurrentLocation;
   fCurrentLocation   = fHomeLocation;
 
-  // 
   int index = fIndex;
   int np    = oldloc->fListOfPeople->GetEntries();
 
@@ -101,6 +105,19 @@ void TPerson::ReturnHome(int Time, TRandom3* RnGen) {
     TPerson* last = (TPerson*) oldloc->fListOfPeople->RemoveAt(np-1);
     oldloc->fListOfPeople->AddAt(last,index);
     last->fIndex = index;
+  }
+
+  // remove person from his old zone
+
+  TObjArray* oldzone = oldloc->fZone[fZoneIX][fZoneIY];
+  int npz = oldzone->GetEntries();
+  int loc = fZoneIndex;
+  oldzone->RemoveAt(loc);
+
+  if (loc < npz) {
+    TPerson* last = (TPerson*) oldzone->RemoveAt(npz-1);
+    oldzone->AddAt(last,loc);
+    last->fZoneIndex = loc;
   }
 
   TLocation* newloc = fCurrentLocation;
@@ -115,12 +132,20 @@ void TPerson::ReturnHome(int Time, TRandom3* RnGen) {
   fMovementStatus    = TPerson::kFreeToMove;
 
 					// use fTimeOfInfection as just an integer
+  RnGen->RndmArray(2,rn);
 
-  double phi = RnGen->Rndm(fTimeOfInfection)*2*M_PI;
-  float r    = fHomeLocation->fRadius;
+  fDx = 2*(rn[0]-1)*newloc->fRadius;
+  fDy = 2*(rn[1]-1)*newloc->fRadius;
+					// 'install' person in a new zone
+  float sx = 2*newloc->fXMax/kNZones;
+  float sy = 2*newloc->fYMax/kNZones;
 
-  fDx = r*cos(phi);
-  fDy = r*sin(phi);
+  int   ix = (fDx+newloc->fXMax)/sx;
+  int   iy = (fDy+newloc->fYMax)/sy;
+
+  TObjArray* newzone = newloc->fZone[ix][iy];
+  newzone->Add(P);
+  fZoneIndex = newzone->GetEntries()-1;
 
   // printf(" Time= %5i %p index %5i returned home from loc %2i to loc %2i;",
   //  	 Time,this,index,oldloc->fIndex,newloc->fIndex);
@@ -134,21 +159,23 @@ void TPerson::ReturnHome(int Time, TRandom3* RnGen) {
 //-----------------------------------------------------------------------------
 void TPerson::TakeOneStep(TRandom3* RnGen) {
 
-  float R2 = fCurrentLocation->R2();
-
-  float r2      = R2+1;
-  float dx(0), dy(0);
+  float dx(0), dy(0), rn[2];
   
-  while (r2 > R2) {
-    double phi  = RnGen->Rndm(fTravelStatus)*2*M_PI;
+  while (1) {
+    RnGen->RndmArray(2,rn);
+
     double step = fStep; // RnGen->Rndm(fTravelStatus)*fStep;
     
-    dx    = fDx+step*cos(phi);
-    dy    = fDy+step*sin(phi);
-    
-    r2    = dx*dx+dy*dy;
+    dx    = fDx+step*(2*rn[0]-1);
+    if (fabs(dx) < fCurrentLocation->fXMax) {
+      dy    = fDy+step*(2*rn[1]-1);
+      if (fabs(dy) < fCurrentLocation->fYMax) break;
+    }
   }
 	    
   fDx = dx;
   fDy = dy;
+					// recalculate the zone
+
+  fCurrentLocation->UpdateZone(this);
 }

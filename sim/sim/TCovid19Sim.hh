@@ -80,7 +80,7 @@ public:
 
   int        NLocations() { return fListOfLocations->GetEntriesFast(); }
 
-  void       AddLocation(TLocation* Loc) { fListOfLocations->Add(Loc); }
+  void       AddLocation(TObject* Loc) { fListOfLocations->Add(Loc); }
 
 					// imagine time step = 1 hour
 
