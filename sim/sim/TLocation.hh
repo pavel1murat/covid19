@@ -43,12 +43,16 @@ public:
 
   TPerson*    Person(int I) { return (TPerson*) fListOfPeople->UncheckedAt(I); }
 
+  TObjArray* Zone(int Ix, int Iy) { return fZone[Ix][Iy]; }
+
   void    UpdateZone(TPerson* P);
 
   //  float R2() { return fRadius*fRadius; }
 
   float  XMax() { return fXMax; }
   float  YMax() { return fYMax; }
+
+  int    NZones() { return kNZones; }
 
   void InitDataRecord(int NDays);
   void Draw(Option_t* Opt = "");

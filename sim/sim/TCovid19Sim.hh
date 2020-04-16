@@ -71,6 +71,8 @@ public:
   void ReturnHome (TPerson* P);
   void StartTravel(TPerson* P, int Time);
 
+  void ProcessZone(TLocation* Loc, int Ix, int Iy, int TimeStep);
+
   void Draw(Option_t* Opt = "");
 
 

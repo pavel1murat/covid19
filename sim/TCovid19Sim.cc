@@ -232,8 +232,9 @@ void TCovid19Sim::StartTravel(TPerson* P, int Time) {
 
   // 'install' person in a new zone
 
-  float sx = 2*newloc->fXMax/kNZones;
-  float sy = 2*newloc->fYMax/kNZones;
+  int nz   = newloc->NZones();
+  float sx = 2*newloc->fXMax/nz;
+  float sy = 2*newloc->fYMax/nz;
 
   int   ix = (P->fDx+newloc->fXMax)/sx;
   int   iy = (P->fDy+newloc->fYMax)/sy;
@@ -330,6 +331,68 @@ void TCovid19Sim::ModelMovement(int Time) {
   }
 }
 
+
+//-----------------------------------------------------------------------------
+void TCovid19Sim::ProcessZone(TLocation* Loc, int Ix, int Iy, int TimeStep) {
+
+  TObjArray* zone = Loc->Zone(Ix,Iy);
+  int np1         = zone->GetEntries();
+
+  int nz          = Loc->NZones();
+
+  for (int i1=0; i1<np1; i1++) {
+    TPerson* p1 = (TPerson*) zone->At(i1); 
+    if (p1->IsInfected()) {
+//-----------------------------------------------------------------------------
+// p1 is infected
+//-----------------------------------------------------------------------------
+      for (int ix2=Ix-1; ix2<Ix+2; ix2++) {
+	if ((ix2 < 0) or (ix2 >=nz)) continue;
+
+	for (int iy2=Iy-1; iy2<Iy+2; iy2++) {
+	  if ((iy2 < 0) or (iy2 >=nz)) continue;
+
+	  TObjArray* zone2 = Loc->fZone[ix2][iy2];
+	  // loop only over people int this zone
+	  int np2 = zone2->GetEntries();
+
+	  int i2min = 1;
+	  if ((ix2 == Ix) && (iy2 == Iy)) i2min = i1+1;
+	  
+	  for (int i2=i2min+1; i2<np2; i2++) {
+	    TPerson* p2 = (TPerson*) Loc->Person(i2); 
+	    if  (p2->IsSusceptible()) ModelInfectionTransfer(p1,p2,TimeStep);
+	  }
+	}
+      }
+    }
+    else if (p1->IsSusceptible()) {
+//-----------------------------------------------------------------------------
+// p1 is not infected, but can be
+//-----------------------------------------------------------------------------
+      for (int ix2=Ix-1; ix2<Ix+2; ix2++) {
+	if ((ix2 < 0) or (ix2 >=nz)) continue;
+
+	for (int iy2=Iy-1; iy2<Iy+2; iy2++) {
+	  if ((iy2 < 0) or (iy2 >=nz)) continue;
+
+	  TObjArray* zone2 = Loc->fZone[ix2][iy2];
+	  // loop only over people int this zone
+	  int np2 = zone2->GetEntries();
+
+	  int i2min = 1;
+	  if ((ix2 == p1->Ix) && (iy2 == Iy)) i2min = i1+1;
+	  
+	  for (int i2=i2min+1; i2<np2; i2++) {
+	    TPerson* p2 = (TPerson*) Loc->Person(i2); 
+	    if  (p2->IsInfected()) ModelInfectionTransfer(p2,p1,TimeStep);
+	  }
+	}
+      }
+    }
+  }
+}
+
 //-----------------------------------------------------------------------------
 void TCovid19Sim::Run() {
 //-----------------------------------------------------------------------------
@@ -349,7 +412,8 @@ void TCovid19Sim::Run() {
       int nl = NLocations();
       for (int iloc=0; iloc<nl; iloc++) {
 	TLocation* loc = Location(iloc);
-	int np = loc->NPeople();
+	int nz         = loc->NZones();
+	int np         = loc->NPeople();
 //-----------------------------------------------------------------------------
 // step 1: evolve individual health status
 //-----------------------------------------------------------------------------
@@ -359,23 +423,13 @@ void TCovid19Sim::Run() {
 	}
 //-----------------------------------------------------------------------------
 // step 2: model infection transfer between the two people currently at that location
+//         loop over zones
 //-----------------------------------------------------------------------------
 	if (fTransferInfection != 0) {
-	  for (int i1=0; i1<np; i1++) {
-	    TPerson* p1 = (TPerson*) loc->Person(i1); 
-	    if (p1->IsInfected()) {
-
-	      int zone = 
-	      for (int i2=i1+1; i2<np; i2++) {
-		TPerson* p2 = (TPerson*) loc->Person(i2); 
-		if  (p2->IsSusceptible()) ModelInfectionTransfer(p1,p2,time_step);
-	      }
-	    }
-	    else if (p1->IsSusceptible()) {
-	      for (int i2=i1+1; i2<np; i2++) {
-		TPerson* p2 = (TPerson*) loc->Person(i2); 
-		if (p2->IsInfected()) ModelInfectionTransfer(p2,p1,time_step);
-	      }
+	  
+	  for (int ix=0; ix<nz; ix++) {
+	    for (int iy=0; iy<nz; iy++) {
+	      ProcessZone(loc,ix,iy,time_step);
 	    }
 	  }
 	}
@@ -386,7 +440,7 @@ void TCovid19Sim::Run() {
 //      printf(" before ModelMovement, step = %5i\n",time_step);
       ModelMovement(time_step);
 //-----------------------------------------------------------------------------
-// step 4: visualize end of the step
+// step 4: end of step (hour), visualize
 //-----------------------------------------------------------------------------
       // gSystem->Sleep(fSleepTime);
     }
