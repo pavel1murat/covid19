@@ -19,9 +19,9 @@ done
 #------------------------------------------------------------------------------
 # SCons-related things: executed from Stntuple
 #------------------------------------------------------------------------------
-# if [ ! -d ./site_scons ] ; then mkdir ./site_scons ; fi
-# cp -u $pkg/scripts/site_init.py       ./site_scons/.
-# cp -u $pkg/scripts/stntuple_helper.py ./site_scons/.
+if [ ! -d ./site_scons ] ; then mkdir ./site_scons ; fi
+cp -u $pkg/scripts/site_init.py       ./site_scons/.
+cp -u $pkg/scripts/stntuple_helper.py ./site_scons/.
 #------------------------------------------------------------------------------
 # .rootrc and rootlogon.C could be modified by the user, copy them just once
 #------------------------------------------------------------------------------

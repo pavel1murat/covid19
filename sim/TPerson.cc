@@ -132,19 +132,20 @@ void TPerson::ReturnHome(int Time, TRandom3* RnGen) {
   fMovementStatus    = TPerson::kFreeToMove;
 
 					// use fTimeOfInfection as just an integer
-  RnGen->RndmArray(2,rn);
+  int nz   = newloc->NZones();
 
+  RnGen->RndmArray(2,rn);
   fDx = 2*(rn[0]-1)*newloc->fRadius;
   fDy = 2*(rn[1]-1)*newloc->fRadius;
 					// 'install' person in a new zone
-  float sx = 2*newloc->fXMax/kNZones;
-  float sy = 2*newloc->fYMax/kNZones;
+  float sx = 2*newloc->fXMax/nz;
+  float sy = 2*newloc->fYMax/nz;
 
   int   ix = (fDx+newloc->fXMax)/sx;
   int   iy = (fDy+newloc->fYMax)/sy;
 
   TObjArray* newzone = newloc->fZone[ix][iy];
-  newzone->Add(P);
+  newzone->Add(this);
   fZoneIndex = newzone->GetEntries()-1;
 
   // printf(" Time= %5i %p index %5i returned home from loc %2i to loc %2i;",

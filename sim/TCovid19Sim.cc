@@ -381,7 +381,7 @@ void TCovid19Sim::ProcessZone(TLocation* Loc, int Ix, int Iy, int TimeStep) {
 	  int np2 = zone2->GetEntries();
 
 	  int i2min = 1;
-	  if ((ix2 == p1->Ix) && (iy2 == Iy)) i2min = i1+1;
+	  if ((ix2 == Ix) && (iy2 == Iy)) i2min = i1+1;
 	  
 	  for (int i2=i2min+1; i2<np2; i2++) {
 	    TPerson* p2 = (TPerson*) Loc->Person(i2); 
